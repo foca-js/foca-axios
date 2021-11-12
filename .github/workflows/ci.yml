@@ -13,7 +13,7 @@ jobs:
       matrix:
         node-version: [12.x, 14.x, 16.x]
         ts-version: [4.4.x]
-        axios-version: [0.20, 0.21, 0.22, 0.23, 0.24]
+        axios-version: ['0.20', '0.21', '0.22', '0.23', '0.24']
 
     runs-on: ubuntu-latest
 
@@ -25,11 +25,26 @@ jobs:
           node-version: ${{ matrix.node-version }}
       - run: |
           yarn install
-          yarn add typescript@${{ matrix.ts-version }} axios@{{ matrix.axios-version }} --dev
+          yarn add typescript@${{ matrix.ts-version }} axios@${{ matrix.axios-version }} --dev
       - run: yarn test
-      - name: Coverage
-        uses: codecov/codecov-action@v1
-        if: matrix.node-version == '14.x' && matrix.ts-version == '4.4.x' && github.ref == 'refs/heads/master'
+      - name: Upload Coverage
+        uses: actions/upload-artifact@v2
+        if: github.ref == 'refs/heads/master'
+        with:
+          name: coverage
+          path: coverage
+  coverage:
+    if: github.ref == 'refs/heads/master'
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Download Coverage
+        uses: actions/download-artifact@v2
+        with:
+          name: coverage
+          path: coverage
+      - uses: codecov/codecov-action@v1
   publish:
     if: "!contains(toJson(github.event.commits), '[skip ci]')"
     needs: test

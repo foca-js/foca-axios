@@ -27,7 +27,7 @@
     "CHANGELOG.md"
   ],
   "peerDependencies": {
-    "axios": ">=0.20.0 <1.0.0"
+    "axios": ">=0.23.0 <1.0.0"
   },
   "dependencies": {
     "clone": "^2.1.2",

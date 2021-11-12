@@ -1,0 +1,50 @@
+{
+  "name": "foca-axios-enhancer",
+  "version": "0.0.1",
+  "repository": "git@github.com:foca-js/foca-axios-enhancer.git",
+  "author": "fwh1990",
+  "license": "MIT",
+  "main": "lib/index.js",
+  "module": "es/index.js",
+  "scripts": {
+    "test": "jest",
+    "prepublishOnly": "ts-prepublish",
+    "prepare": "husky install"
+  },
+  "exports": {
+    ".": {
+      "require": "./lib/index.js",
+      "import": "./es/index.js"
+    },
+    "./": "./"
+  },
+  "files": [
+    "lib",
+    "es",
+    "LICENSE",
+    "package.json",
+    "README.md",
+    "CHANGELOG.md"
+  ],
+  "peerDependencies": {
+    "axios": ">=0.20.0 <1.0.0"
+  },
+  "dependencies": {
+    "clone": "^2.1.2",
+    "object-assign": "^4.1.1"
+  },
+  "devDependencies": {
+    "@types/clone": "^2.1.1",
+    "@types/jest": "^27.0.2",
+    "@types/object-assign": "^4.0.30",
+    "axios": "^0.24.0",
+    "axios-mock-adapter": "^1.20.0",
+    "commitlint": "^13.2.1",
+    "husky": "^7.0.4",
+    "jest": "^27.3.1",
+    "prettier": "^2.4.1",
+    "ts-jest": "^27.0.7",
+    "ts-prepublish": "^2.0.0",
+    "typescript": "^4.4.4"
+  }
+}

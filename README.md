@@ -1,6 +1,6 @@
-# foca-axios
+# foca-axios-enhancer
 
-基于流行库 axios，为 foca 定制的运行于 Web 和 React-Native 端的请求库。
+针对 axios 请求库的增强型适配器。
 
 # 特性
 
@@ -12,5 +12,5 @@
 # 安装
 
 ```bash
-yarn add foca-axios
+yarn add axios foca-axios-enhancer
 ```

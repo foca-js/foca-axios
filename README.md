@@ -2,6 +2,11 @@
 
 针对 axios 请求库的增强型适配器。
 
+[![License](https://img.shields.io/github/license/foca-js/foca-axios-enhancer)](https://github.com/foca-js/foca-axios-enhancer/blob/master/LICENSE)
+[![GitHub Workflow Status (branch)](https://img.shields.io/github/workflow/status/foca-js/foca-axios-enhancer/CI/master)](https://github.com/foca-js/foca-axios-enhancer/actions)
+[![Codecov](https://img.shields.io/codecov/c/github/foca-js/foca-axios-enhancer)](https://codecov.io/gh/foca-js/foca-axios-enhancer)
+[![npm](https://img.shields.io/npm/v/foca-axios-enhancer)](https://www.npmjs.com/package/foca-axios-enhancer)
+
 # 特性
 
 - 共享相同请求，减少服务器压力

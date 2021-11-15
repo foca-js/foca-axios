@@ -4,8 +4,8 @@ declare module 'axios/lib/core/createError' {
   export default function createError(
     message: string,
     config: AxiosRequestConfig,
-    code: string | null,
+    code: string | null | undefined,
     request: any,
-    response: AxiosResponse,
+    response: AxiosResponse | undefined,
   ): AxiosError;
 }

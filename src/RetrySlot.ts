@@ -1,74 +1,71 @@
-import axios, {
-  AxiosAdapter,
-  AxiosError,
-  AxiosInstance,
-  AxiosResponse,
-  Method,
-} from 'axios';
-import assign from 'object-assign';
+import axios, { AxiosAdapter, AxiosError, AxiosResponse, Method } from 'axios';
 import { FocaRequestConfig } from './enhancer';
 import createError from 'axios/lib/core/createError';
 import { PromiseCallback } from './collectPromiseCallback';
+import { mergeSlotOptions } from './mergeSlotOptions';
 
 export interface RetrySlotOptions {
   /**
-   * 是否支持重试，默认： true
+   * 是否支持重试，默认：true
    */
   enable?: boolean;
   /**
    * 重试次数，默认：3次
+   * @see RetrySlot.defaultMaxTimes
    */
   maxTimes?: number;
   /**
-   * 每次重试间隔，默认：100 ms
+   * 每次重试间隔，默认：100ms
+   * @see RetrySlot.defaultDelay
    */
   delay?: number;
   /**
    * 允许重试的请求方法，默认：['get', 'head', 'put', 'patch', 'delete']
+   * @see RetrySlot.defaultAllowedMethods
    */
   allowedMethods?: `${Lowercase<Method>}`[];
   /**
    * 允许重试的http状态码区间，默认：[[100, 199], 429, [500, 599]]
+   * @see RetrySlot.defaultAllowedHttpStatus
    */
   allowedHttpStatus?: (number | [number, number])[];
 }
 
 export class RetrySlot {
-  protected static defaultAllowedMethods: NonNullable<
+  static defaultAllowedMethods: NonNullable<
     RetrySlotOptions['allowedMethods']
   > = ['get', 'head', 'put', 'patch', 'delete'];
 
-  protected static defaultAllowedHttpStatus: NonNullable<
+  static defaultAllowedHttpStatus: NonNullable<
     RetrySlotOptions['allowedHttpStatus']
   > = [[100, 199], 429, [500, 599]];
 
-  protected static defaultMaxTimes = 3;
+  static defaultMaxTimes = 3;
 
-  protected static defaultDelay = 300;
-
-  protected readonly originalAdapter: AxiosAdapter;
+  static defaultDelay = 300;
 
   constructor(
-    axios: AxiosInstance,
-    protected readonly options: RetrySlotOptions = { enable: false },
-    protected readonly getHttpStatus?: (response: AxiosResponse) => number,
+    protected readonly options: RetrySlotOptions | undefined,
+    protected readonly originalAdapter: AxiosAdapter,
+    protected readonly getHttpStatus:
+      | ((response: AxiosResponse) => number)
+      | undefined,
   ) {
-    const originalAdapter = axios.defaults.adapter;
     if (!originalAdapter) {
       throw new Error('axios default adapter is not found.');
     }
-    this.originalAdapter = originalAdapter;
   }
 
   hit(
     config: FocaRequestConfig,
     [onResolve, onReject]: PromiseCallback,
   ): Promise<any> {
-    const options = assign({}, this.options, config.retry);
+    const options = mergeSlotOptions(this.options, config.retry);
     const {
       delay = RetrySlot.defaultDelay,
       maxTimes = RetrySlot.defaultMaxTimes,
       allowedMethods = RetrySlot.defaultAllowedMethods,
+      allowedHttpStatus = RetrySlot.defaultAllowedHttpStatus,
     } = options;
     const enable =
       options.enable !== false &&
@@ -85,12 +82,12 @@ export class RetrySlot {
           const getHttpStatus = config.getHttpStatus || this.getHttpStatus;
 
           if (config.validateStatus && getHttpStatus) {
-            const httpStatus = getHttpStatus(response);
+            const realHttpStatus = getHttpStatus(response);
 
-            if (!config.validateStatus(httpStatus)) {
+            if (!config.validateStatus(realHttpStatus)) {
               return Promise.reject(
                 createError(
-                  'Request failed with status code ' + httpStatus,
+                  'Request failed with status code ' + realHttpStatus,
                   response.config,
                   null,
                   response.request,
@@ -107,7 +104,8 @@ export class RetrySlot {
             !enable ||
             currentTimes >= maxTimes ||
             axios.isCancel(err) ||
-            (err.response && !this.isAllowedStatus(err.response))
+            (err.response &&
+              !this.isAllowedStatus(err.response, allowedHttpStatus))
           ) {
             return Promise.reject(err);
           }
@@ -123,14 +121,13 @@ export class RetrySlot {
     return loop(0);
   }
 
-  protected isAllowedStatus(response: AxiosResponse) {
+  protected isAllowedStatus(
+    response: AxiosResponse,
+    allowedHttpStatus: NonNullable<RetrySlotOptions['allowedHttpStatus']>,
+  ) {
     const currentStatus = response.status;
-    const httpStatuses =
-      (response.config as FocaRequestConfig).retry?.allowedHttpStatus ||
-      this.options.allowedHttpStatus ||
-      RetrySlot.defaultAllowedHttpStatus;
 
-    return httpStatuses.some((range) => {
+    return allowedHttpStatus.some((range) => {
       return typeof range === 'number'
         ? range === currentStatus
         : currentStatus >= range[0] && currentStatus <= range[1];

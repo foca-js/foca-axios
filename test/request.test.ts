@@ -2,9 +2,7 @@ import axios, { AxiosResponse } from 'axios';
 import { enhanceAxios } from '../src';
 import MockAdapter from 'axios-mock-adapter';
 
-const instance = axios.create({
-  baseURL: 'https://registry.npmjs.com',
-});
+const instance = axios.create();
 const mock = new MockAdapter(instance);
 const http = enhanceAxios(instance);
 

@@ -1,15 +1,17 @@
 import { AxiosResponse } from 'axios';
-import assign from 'object-assign';
 import clone from 'clone';
 import { FocaRequestConfig } from './enhancer';
+import { mergeSlotOptions } from './mergeSlotOptions';
 
 export interface CacheSlotOptions {
   /**
-   * 是否允许使用缓存，全局设置时默认：false，请求时默认：true
+   * 是否允许使用缓存。
    */
   enable?: boolean;
   /**
-   * 缓存存活时间(ms)，默认：10 * 60 *1000（10分钟）
+   * 缓存存活时间(ms)，默认：10 * 60 *1000（10分钟）。
+   *
+   * @see CacheSlot.defaultMaxAge
    */
   maxAge?: number;
   /**
@@ -17,7 +19,7 @@ export interface CacheSlotOptions {
    *
    * 允许直接更改formatConfig对象，不会影响请求结果。
    */
-  formatKey?: (formatConfig: CacheFormatConfig) => object | string | void;
+  format?: (formatConfig: CacheFormatConfig) => object | string;
 }
 
 interface CacheData {
@@ -25,82 +27,78 @@ interface CacheData {
   response: AxiosResponse;
 }
 
-export class CacheSlot {
-  protected static defaultMaxAge = 10 * 60 * 1000;
+type FormatKeys = typeof CacheSlot['formatKeys'][number];
 
-  protected readonly cache: Partial<{
+export type CacheFormatConfig = Required<Pick<FocaRequestConfig, FormatKeys>>;
+
+export class CacheSlot {
+  static defaultMaxAge = 10 * 60 * 1000;
+
+  static formatKeys = [
+    'baseURL',
+    'url',
+    'method',
+    'params',
+    'data',
+    'headers',
+  ] as const;
+
+  protected readonly cacheMap: Partial<{
     [K: string]: CacheData;
   }> = {};
 
-  constructor(protected readonly options: CacheSlotOptions = {}) {}
+  constructor(protected readonly options?: CacheSlotOptions) {}
 
   hit(
     config: FocaRequestConfig,
-    newCache: () => Promise<AxiosResponse>,
+    newCache: (config: FocaRequestConfig) => Promise<AxiosResponse>,
   ): Promise<AxiosResponse> {
-    const options = assign({}, this.options, config.cache);
-    const { maxAge = CacheSlot.defaultMaxAge } = options;
+    const options = mergeSlotOptions(this.options, config.cache);
 
-    const enable = config.cache ? options.enable !== false : false;
-    const formatConfig = enable ? getFormatConfig(config) : null;
-    const key = enable
-      ? JSON.stringify(
-          options.formatKey
-            ? options.formatKey(clone(formatConfig!))
-            : formatConfig,
-        )
-      : '';
-
-    if (enable) {
-      const cacheData = this.cache[key];
-
-      if (cacheData) {
-        if (cacheData.time + maxAge >= Date.now()) {
-          const next = clone(cacheData.response, false);
-          next.config = config;
-
-          return Promise.resolve(next);
-        }
-
-        this.cache[key] = void 0;
-      }
+    if (!options.enable) {
+      return newCache(config);
     }
 
-    return newCache().then((response) => {
-      if (enable) {
-        const config = response.config;
-        // @ts-expect-error
-        response.config = null;
-        const next = clone(response, false);
-        response.config = config;
+    const { maxAge = CacheSlot.defaultMaxAge, format } = options;
+    const formatConfig = CacheSlot.getFormatConfig(config);
+    const key = JSON.stringify(
+      format ? format(clone(formatConfig!)) : formatConfig,
+    );
 
-        this.cache[key] = {
-          time: Date.now(),
-          response: next,
-        };
+    const cacheData = this.cacheMap[key];
+
+    if (cacheData) {
+      if (cacheData.time + maxAge >= Date.now()) {
+        const next = clone(cacheData.response, false);
+        next.config = config;
+        return Promise.resolve(next);
       }
+
+      this.cacheMap[key] = void 0;
+    }
+
+    return newCache(config).then((response) => {
+      const prevConfig = response.config;
+      // @ts-expect-error
+      response.config = null;
+      const next = clone(response, false);
+      response.config = prevConfig;
+
+      this.cacheMap[key] = {
+        time: Date.now(),
+        response: next,
+      };
 
       return response;
     });
   }
+
+  protected static getFormatConfig(
+    config: FocaRequestConfig,
+  ): CacheFormatConfig {
+    return this.formatKeys.reduce((carry, key) => {
+      carry[key] = config[key];
+      return carry;
+    }, <Pick<FocaRequestConfig, FormatKeys>>{}) as CacheFormatConfig;
+  }
 }
-
-const formatKeys = [
-  'baseURL',
-  'url',
-  'method',
-  'params',
-  'data',
-  'headers',
-] as const;
-
-type FormatKeys = typeof formatKeys[number];
-
-export type CacheFormatConfig = Required<Pick<FocaRequestConfig, FormatKeys>>;
-
-const getFormatConfig = (config: FocaRequestConfig): CacheFormatConfig => {
-  return formatKeys.reduce((carry, key) => {
-    carry[key] = config[key];
-    return carry;
-  }, <Pick<FocaRequestConfig, FormatKeys>>{}) as CacheFormatConfig;
-};

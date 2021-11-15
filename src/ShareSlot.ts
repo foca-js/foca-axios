@@ -1,16 +1,17 @@
-import { AxiosResponse, Method } from 'axios';
+import axios, { AxiosError, AxiosResponse, Method } from 'axios';
+import createError from 'axios/lib/core/createError';
 import clone from 'clone';
-import assign from 'object-assign';
 import { FocaRequestConfig } from './enhancer';
+import { mergeSlotOptions } from './mergeSlotOptions';
 
 export interface ShareSlotOptions {
   /**
-   * 是否支持共享，默认：true
+   * 是否允许共享，默认：true
    */
   enable?: boolean;
   /**
    * 允许共享的方法，默认：['get', 'head', 'put', 'patch', 'delete']
-   *
+   * @see ShareSlot.defaultAllowedMethods
    */
   allowedMethods?: `${Lowercase<Method>}`[];
   /**
@@ -18,11 +19,29 @@ export interface ShareSlotOptions {
    *
    * 允许直接更改formatConfig对象，不会影响请求结果。
    */
-  formatKey?: (formatConfig: ShareFormatConfig) => object | string | void;
+  format?: (formatConfig: ShareFormatConfig) => object | string;
 }
 
+type FormatKeys = typeof ShareSlot['formatKeys'][number];
+
+export type ShareFormatConfig = Required<Pick<FocaRequestConfig, FormatKeys>>;
+
 export class ShareSlot {
-  protected static defaultAllowedMethods: NonNullable<
+  static formatKeys = [
+    'baseURL',
+    'url',
+    'method',
+    'params',
+    'data',
+    'headers',
+    'timeout',
+    'maxContentLength',
+    'maxBodyLength',
+    'xsrfCookieName',
+    'xsrfHeaderName',
+  ] as const;
+
+  static defaultAllowedMethods: NonNullable<
     ShareSlotOptions['allowedMethods']
   > = ['get', 'head', 'put', 'patch', 'delete'];
 
@@ -30,51 +49,60 @@ export class ShareSlot {
     [K: string]: Promise<AxiosResponse>;
   }> = {};
 
-  constructor(
-    protected readonly options: ShareSlotOptions = { enable: false },
-  ) {}
+  constructor(protected readonly options?: ShareSlotOptions) {}
 
-  async hit(
+  hit(
     config: FocaRequestConfig,
-    newThread: () => Promise<AxiosResponse>,
+    newThread: (config: FocaRequestConfig) => Promise<AxiosResponse>,
   ): Promise<AxiosResponse> {
-    const options = assign({}, this.options, config.share);
-    const { allowedMethods = ShareSlot.defaultAllowedMethods } = options;
+    const options = mergeSlotOptions(this.options, config.share);
+    const { format, allowedMethods = ShareSlot.defaultAllowedMethods } =
+      options;
 
     const enable =
       options.enable !== false &&
-      // 强制允许时，不检测method
-      ((config.share && config.share.enable === true) ||
-        allowedMethods.includes(
-          config.method!.toLowerCase() as `${Lowercase<Method>}`,
-        ));
+      allowedMethods.includes(
+        config.method!.toLowerCase() as `${Lowercase<Method>}`,
+      );
 
     if (!enable) {
-      return newThread();
+      return newThread(config);
     }
 
-    const formatConfig = enable ? getFormatConfig(config) : null;
-    const key = enable
-      ? JSON.stringify(
-          options.formatKey
-            ? options.formatKey(clone(formatConfig!))
-            : formatConfig,
-        )
-      : '';
+    const formatConfig = ShareSlot.getFormatConfig(config);
+    const key = JSON.stringify(
+      format ? format(clone(formatConfig!)) : formatConfig,
+    );
 
     const thread = this.threads[key];
 
     if (thread) {
-      return thread;
+      return thread
+        .then((response) => {
+          return this.normalize(response, config);
+        })
+        .catch((err: AxiosError) => {
+          return Promise.reject(
+            axios.isCancel(err)
+              ? err
+              : createError(
+                  err.message,
+                  config,
+                  err.code,
+                  err.request ? clone(err.request, false) : void 0,
+                  err.response ? this.normalize(err.response, config) : void 0,
+                ),
+          );
+        });
     }
 
-    const promise = (this.threads[key] = newThread());
+    const promise = (this.threads[key] = newThread(config));
 
     /**
      * 请求结束后需清理共享池
      *
      * then/catch 在 chrome@32 引入，除了IE之外基本都支持了。
-     * finally 在 chrome@63 引入，支持得比较晚，不建议冒险使用。
+     * finally 在 chrome@63 引入，支持得比较晚，不建议使用。
      */
     promise
       .then(() => {
@@ -86,29 +114,23 @@ export class ShareSlot {
 
     return promise;
   }
+
+  protected normalize(response: AxiosResponse, config: FocaRequestConfig) {
+    const prevConfig = response.config;
+    // @ts-expect-error
+    response.config = null;
+    const next = clone(response, false);
+    response.config = prevConfig;
+    next.config = config;
+    return next;
+  }
+
+  protected static getFormatConfig(
+    config: FocaRequestConfig,
+  ): ShareFormatConfig {
+    return this.formatKeys.reduce((carry, key) => {
+      carry[key] = config[key];
+      return carry;
+    }, <Pick<FocaRequestConfig, FormatKeys>>{}) as ShareFormatConfig;
+  }
 }
-
-const formatKeys = [
-  'baseURL',
-  'url',
-  'method',
-  'params',
-  'data',
-  'headers',
-  'timeout',
-  'maxContentLength',
-  'maxBodyLength',
-  'xsrfCookieName',
-  'xsrfHeaderName',
-] as const;
-
-type FormatKeys = typeof formatKeys[number];
-
-export type ShareFormatConfig = Required<Pick<FocaRequestConfig, FormatKeys>>;
-
-const getFormatConfig = (config: FocaRequestConfig): ShareFormatConfig => {
-  return formatKeys.reduce((carry, key) => {
-    carry[key] = config[key];
-    return carry;
-  }, <Pick<FocaRequestConfig, FormatKeys>>{}) as ShareFormatConfig;
-};

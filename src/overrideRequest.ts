@@ -1,7 +1,7 @@
 import { Axios, AxiosInstance, AxiosResponse } from 'axios';
 import { FocaRequestConfig } from './enhancer';
 
-export interface FocaAxioaPromise<T = any, D = any> extends Promise<T> {
+export interface FocaAxiosPromise<T = any, D = any> extends Promise<T> {
   /**
    * 返回axios原始的response格式
    *
@@ -11,7 +11,7 @@ export interface FocaAxioaPromise<T = any, D = any> extends Promise<T> {
 }
 
 export const overrideRequest = (instance: AxiosInstance) => {
-  // 真实的context未暴露出来，导致request方法重写无效。
+  // 真实的context = new Axios()，但是未暴露出来，导致request方法重写无效。
   Object.keys(Axios.prototype).forEach((key) => {
     // @ts-expect-error
     instance[key] = Axios.prototype[key].bind(instance);
@@ -20,15 +20,15 @@ export const overrideRequest = (instance: AxiosInstance) => {
   const originalRequest = instance.request;
 
   instance.request = function focaRequest(config: FocaRequestConfig) {
-    let shouldUnwrap = true;
+    let shouldUnwrap: boolean = true;
 
     const promise = originalRequest(config).then((response) => {
       return shouldUnwrap ? response.data : response;
-    }) as FocaAxioaPromise;
+    }) as FocaAxiosPromise;
 
-    promise.toRawResponse = function () {
+    promise.toRawResponse = function toRawResponse() {
       shouldUnwrap = false;
-      return this;
+      return promise;
     };
 
     return promise;

@@ -1,5 +1,5 @@
 import { Axios, AxiosInstance, AxiosResponse } from 'axios';
-import { FocaRequestConfig } from './enhancer';
+import { FocaRequestConfig } from '../enhancer';
 
 export interface FocaAxiosPromise<T = any, D = any> extends Promise<T> {
   /**

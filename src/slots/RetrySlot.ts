@@ -1,7 +1,5 @@
-import axios, { AxiosAdapter, AxiosError, AxiosResponse, Method } from 'axios';
+import axios, { AxiosError, AxiosResponse, Method } from 'axios';
 import { FocaRequestConfig } from '../enhancer';
-import createError from 'axios/lib/core/createError';
-import { PromiseCallback } from '../libs/collectPromiseCallback';
 import { mergeSlotOptions } from '../libs/mergeSlotOptions';
 
 export interface RetrySlotOptions {
@@ -45,22 +43,13 @@ export class RetrySlot {
 
   static defaultDelay = 100;
 
-  constructor(
-    protected readonly options: RetrySlotOptions | undefined,
-    protected readonly originalAdapter: AxiosAdapter,
-    protected readonly getHttpStatus:
-      | ((response: AxiosResponse) => number)
-      | undefined,
-  ) {
-    if (!originalAdapter) {
-      throw new Error('axios default adapter is not found.');
-    }
-  }
+  constructor(protected readonly options?: RetrySlotOptions) {}
 
-  hit(
+  validate(
+    err: AxiosError,
     config: FocaRequestConfig,
-    [onResolve, onReject]: PromiseCallback,
-  ): Promise<any> {
+    currentTimes: number,
+  ): Promise<boolean> {
     const options = mergeSlotOptions(this.options, config.retry);
     const {
       delay = RetrySlot.defaultDelay,
@@ -68,56 +57,25 @@ export class RetrySlot {
       allowedMethods = RetrySlot.defaultAllowedMethods,
       allowedHttpStatus = RetrySlot.defaultAllowedHttpStatus,
     } = options;
+
     const enable =
       options.enable !== false &&
+      currentTimes <= maxTimes &&
+      !axios.isCancel(err) &&
       allowedMethods.includes(
         config.method!.toLowerCase() as `${Lowercase<Method>}`,
-      );
+      ) &&
+      (!err.response || this.isAllowedStatus(err.response, allowedHttpStatus));
 
-    const loop = (currentTimes: number): Promise<any> => {
-      return this.originalAdapter(config)
-        .then(onResolve, onReject)
-        .then((response) => {
-          const getHttpStatus = config.getHttpStatus || this.getHttpStatus;
-
-          if (config.validateStatus && getHttpStatus) {
-            const realHttpStatus = getHttpStatus(response);
-
-            if (!config.validateStatus(realHttpStatus)) {
-              return Promise.reject(
-                createError(
-                  'Request failed with status code ' + realHttpStatus,
-                  response.config,
-                  null,
-                  response.request,
-                  response,
-                ),
-              );
-            }
-          }
-
-          return response;
-        })
-        .catch((err: AxiosError) => {
-          if (
-            !enable ||
-            currentTimes >= maxTimes ||
-            axios.isCancel(err) ||
-            (err.response &&
-              !this.isAllowedStatus(err.response, allowedHttpStatus))
-          ) {
-            return Promise.reject(err);
-          }
-
-          return new Promise((resolve) => {
-            setTimeout(() => {
-              resolve(loop(currentTimes + 1));
-            }, delay);
-          });
-        });
-    };
-
-    return loop(0);
+    return new Promise((resolve) => {
+      if (enable) {
+        setTimeout(() => {
+          resolve(true);
+        }, delay);
+      } else {
+        resolve(false);
+      }
+    });
   }
 
   protected isAllowedStatus(

@@ -1,44 +1,46 @@
-import axios, { AxiosResponse } from 'axios';
-import { enhanceAxios } from '../src';
+import axios, { Axios, AxiosError, AxiosResponse } from 'axios';
 import MockAdapter from 'axios-mock-adapter';
+import { FocaRequestConfig } from '../src';
+import { RequestSlot } from '../src/slots/RequestSlot';
 
-const instance = axios.create();
-const mock = new MockAdapter(instance);
-const http = enhanceAxios(instance);
+const onResolve = (response: AxiosResponse) => response;
+const onReject = (err: AxiosError) => {
+  return Promise.reject(err);
+};
 
-test('Get unwrap api', async () => {
-  const data = [
-    { id: 1, name: 'lucifer' },
-    { id: 2, name: 'Waka' },
-  ];
-
-  mock.onGet('/users').replyOnce(200, data);
-
-  const result = await http.get<typeof data>('/users');
-  expect(result).toMatchObject<typeof data>(data);
+test('RequestSlot accepts an adapter', () => {
+  expect(
+    () => new RequestSlot(new Axios().defaults?.adapter!, undefined),
+  ).toThrowError();
 });
 
-test('Post unwrap api', async () => {
-  const data = 'Succeed';
+test('Can request non-standart response', async () => {
+  const instance = axios.create();
+  const mock = new MockAdapter(instance);
 
-  mock.onPost('/users').replyOnce(201, data);
+  const request = new RequestSlot(
+    mock.adapter(),
+    (response) => response.data.code,
+  );
 
-  const result = await http.post<typeof data>('/users');
-  expect(result).toBe(data);
-});
+  const config: FocaRequestConfig = {
+    url: '/users',
+    method: 'get',
+    validateStatus: instance.defaults.validateStatus,
+  };
 
-test('Get api with original axios response', async () => {
-  const data = [
-    { id: 1, name: 'lucifer' },
-    { id: 2, name: 'Waka' },
-  ];
-
-  mock.onGet('/users').replyOnce(200, data);
-
-  const result = await http.get<typeof data>('/users').toRawResponse();
-
-  expect(result).toMatchObject<Partial<AxiosResponse<typeof data>>>({
-    data: data,
-    status: 200,
+  mock.onGet('/users').replyOnce(200, { code: 201, data: 'abc' });
+  await expect(
+    request.hit(config, [onResolve, onReject], async () => false),
+  ).resolves.toMatchObject({
+    data: {
+      data: 'abc',
+      code: 201,
+    },
   });
+
+  mock.onGet('/users').replyOnce(200, { code: 400, data: 'abc' });
+  await expect(
+    request.hit(config, [onResolve, onReject], async () => false),
+  ).rejects.toThrowError();
 });

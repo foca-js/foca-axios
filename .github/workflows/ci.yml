@@ -13,7 +13,7 @@ jobs:
       matrix:
         node-version: [12.x, 14.x, 16.x]
         ts-version: [4.4.x]
-        axios-version: ['0.23', '0.24']
+        axios-version: ['0.24']
 
     runs-on: ubuntu-latest
 

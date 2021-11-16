@@ -1,5 +1,6 @@
 import { AxiosResponse } from 'axios';
 import clone from 'clone';
+import { cloneResponse } from './cloneResponse';
 import { FocaRequestConfig } from './enhancer';
 import { mergeSlotOptions } from './mergeSlotOptions';
 
@@ -62,27 +63,21 @@ export class CacheSlot {
     const { maxAge = CacheSlot.defaultMaxAge, format } = options;
     const formatConfig = CacheSlot.getFormatConfig(config);
     const key = JSON.stringify(
-      format ? format(clone(formatConfig!)) : formatConfig,
+      format ? format(clone(formatConfig!, false)) : formatConfig,
     );
 
     const cacheData = this.cacheMap[key];
 
     if (cacheData) {
       if (cacheData.time + maxAge >= Date.now()) {
-        const next = clone(cacheData.response, false);
-        next.config = config;
-        return Promise.resolve(next);
+        return Promise.resolve(cloneResponse(cacheData.response, config));
       }
 
       this.cacheMap[key] = void 0;
     }
 
     return newCache(config).then((response) => {
-      const prevConfig = response.config;
-      // @ts-expect-error
-      response.config = null;
-      const next = clone(response, false);
-      response.config = prevConfig;
+      const next = cloneResponse(response, response.config);
 
       this.cacheMap[key] = {
         time: Date.now(),

@@ -1,6 +1,7 @@
 import axios, { AxiosError, AxiosResponse, Method } from 'axios';
 import createError from 'axios/lib/core/createError';
 import clone from 'clone';
+import { cloneResponse } from './cloneResponse';
 import { FocaRequestConfig } from './enhancer';
 import { mergeSlotOptions } from './mergeSlotOptions';
 
@@ -71,7 +72,7 @@ export class ShareSlot {
 
     const formatConfig = ShareSlot.getFormatConfig(config);
     const key = JSON.stringify(
-      format ? format(clone(formatConfig!)) : formatConfig,
+      format ? format(clone(formatConfig!, false)) : formatConfig,
     );
 
     const thread = this.threads[key];
@@ -79,7 +80,7 @@ export class ShareSlot {
     if (thread) {
       return thread
         .then((response) => {
-          return this.normalize(response, config);
+          return cloneResponse(response, config);
         })
         .catch((err: AxiosError) => {
           return Promise.reject(
@@ -89,8 +90,8 @@ export class ShareSlot {
                   err.message,
                   config,
                   err.code,
-                  err.request ? clone(err.request, false) : void 0,
-                  err.response ? this.normalize(err.response, config) : void 0,
+                  err.request,
+                  err.response ? cloneResponse(err.response, config) : void 0,
                 ),
           );
         });
@@ -113,16 +114,6 @@ export class ShareSlot {
       });
 
     return promise;
-  }
-
-  protected normalize(response: AxiosResponse, config: FocaRequestConfig) {
-    const prevConfig = response.config;
-    // @ts-expect-error
-    response.config = null;
-    const next = clone(response, false);
-    response.config = prevConfig;
-    next.config = config;
-    return next;
   }
 
   protected static getFormatConfig(

@@ -1,13 +1,5 @@
-import { AxiosResponse } from 'axios';
 import { FocaRequestConfig, ShareSlot } from '../src';
-
-const resolveResponse = (config: FocaRequestConfig) =>
-  Promise.resolve({
-    data: Math.random(),
-    config,
-    request: {},
-  }) as Promise<AxiosResponse>;
-const rejectRespone = () => Promise.reject(new Error(''));
+import { rejectRespone, resolveResponse } from './utils';
 
 test('Common request will not share', async () => {
   const share = new ShareSlot();
@@ -142,7 +134,7 @@ test('Ending share thread after promise rejected', async () => {
   await expect(b).rejects.toThrowError();
 
   const c = await share.hit(config, resolveResponse);
-  expect(typeof c.data).toEqual('number');
+  expect(typeof c.data.num).toEqual('number');
 });
 
 test('config should not be shared', async () => {
@@ -164,4 +156,10 @@ test('config should not be shared', async () => {
   expect(a.config !== b.config).toBeTruthy();
   expect(a.config === config1).toBeTruthy();
   expect(b.config === config2).toBeTruthy();
+
+  expect(a.headers !== b.headers).toBeTruthy();
+  expect(a.headers).toStrictEqual(b.headers);
+
+  expect(a.data !== b.data).toBeTruthy();
+  expect(a.data).toStrictEqual(b.data);
 });

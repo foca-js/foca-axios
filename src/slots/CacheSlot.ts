@@ -23,10 +23,12 @@ export interface CacheSlotOptions {
   format?: (formatConfig: CacheFormatConfig) => object | string;
 }
 
-interface CacheData {
-  time: number;
-  response: AxiosResponse;
-}
+type CacheMap = Partial<{
+  [K: string]: {
+    time: number;
+    response: AxiosResponse;
+  };
+}>;
 
 type FormatKeys = typeof CacheSlot['formatKeys'][number];
 
@@ -44,9 +46,7 @@ export class CacheSlot {
     'headers',
   ] as const;
 
-  protected readonly cacheMap: Partial<{
-    [K: string]: CacheData;
-  }> = {};
+  protected readonly cacheMap: CacheMap = {};
 
   constructor(protected readonly options?: CacheSlotOptions) {}
 
@@ -56,7 +56,7 @@ export class CacheSlot {
   ): Promise<AxiosResponse> {
     const options = mergeSlotOptions(this.options, config.cache);
 
-    if (!options.enable) {
+    if (options.enable === false) {
       return newCache(config);
     }
 
@@ -73,7 +73,7 @@ export class CacheSlot {
         return Promise.resolve(cloneResponse(cacheData.response, config));
       }
 
-      this.cacheMap[key] = void 0;
+      delete this.cacheMap[key];
     }
 
     return newCache(config).then((response) => {

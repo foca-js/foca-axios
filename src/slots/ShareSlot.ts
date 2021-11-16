@@ -72,16 +72,14 @@ export class ShareSlot {
 
     const formatConfig = ShareSlot.getFormatConfig(config);
     const key = JSON.stringify(
-      format ? format(clone(formatConfig!, false)) : formatConfig,
+      format ? format(clone(formatConfig, false)) : formatConfig,
     );
 
     const thread = this.threads[key];
 
     if (thread) {
       return thread
-        .then((response) => {
-          return cloneResponse(response, config);
-        })
+        .then((response) => cloneResponse(response, config))
         .catch((err: AxiosError) => {
           return Promise.reject(
             axios.isCancel(err)

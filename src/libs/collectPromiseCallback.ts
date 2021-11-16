@@ -1,4 +1,7 @@
-export type PromiseCallback = [onResolve?: () => any, onReject?: () => any];
+export type PromiseCallback = [
+  onResolve?: (...args: any[]) => any,
+  onReject?: (...args: any[]) => any,
+];
 
 export const collectPromiseCallback = (
   promise: Promise<any>,

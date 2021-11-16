@@ -9,3 +9,11 @@ declare module 'axios/lib/core/createError' {
     response: AxiosResponse | undefined,
   ): AxiosError;
 }
+
+declare module 'axios/lib/cancel/Cancel' {
+  export default class Cancel {
+    constructor(message: string);
+  }
+
+  Cancel.prototype.__CANCEL__ = true;
+}

@@ -6,16 +6,17 @@ import { mergeSlotOptions } from '../libs/mergeSlotOptions';
 
 export interface RetrySlotOptions {
   /**
-   * 是否支持重试，默认：true
+   * 失败的请求是否允许重试，默认：true
    */
   enable?: boolean;
   /**
-   * 重试次数，默认：3次
+   * 最大重试次数，默认：3次
    * @see RetrySlot.defaultMaxTimes
    */
   maxTimes?: number;
   /**
    * 每次重试间隔，默认：100ms
+   * @see setTimeout()
    * @see RetrySlot.defaultDelay
    */
   delay?: number;
@@ -42,7 +43,7 @@ export class RetrySlot {
 
   static defaultMaxTimes = 3;
 
-  static defaultDelay = 300;
+  static defaultDelay = 100;
 
   constructor(
     protected readonly options: RetrySlotOptions | undefined,
@@ -69,11 +70,9 @@ export class RetrySlot {
     } = options;
     const enable =
       options.enable !== false &&
-      // 强制允许时，不检测method
-      ((config.retry && config.retry.enable === true) ||
-        allowedMethods.includes(
-          config.method!.toLowerCase() as `${Lowercase<Method>}`,
-        ));
+      allowedMethods.includes(
+        config.method!.toLowerCase() as `${Lowercase<Method>}`,
+      );
 
     const loop = (currentTimes: number): Promise<any> => {
       return this.originalAdapter(config)

@@ -134,7 +134,7 @@ test('Ending share thread after promise rejected', async () => {
   await expect(b).rejects.toThrowError();
 
   const c = await share.hit(config, resolveResponse);
-  expect(typeof c.data.num).toEqual('number');
+  expect(c.data).toHaveProperty('num');
 });
 
 test('config should not be shared', async () => {

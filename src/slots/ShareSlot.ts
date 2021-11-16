@@ -98,6 +98,9 @@ export class ShareSlot {
     }
 
     const promise = (this.threads[key] = newThread(config));
+    const clearThread = () => {
+      delete this.threads[key];
+    };
 
     /**
      * 请求结束后需清理共享池
@@ -105,13 +108,7 @@ export class ShareSlot {
      * then/catch 在 chrome@32 引入，除了IE之外基本都支持了。
      * finally 在 chrome@63 引入，支持得比较晚，不建议使用。
      */
-    promise
-      .then(() => {
-        this.threads[key] = void 0;
-      })
-      .catch(() => {
-        this.threads[key] = void 0;
-      });
+    promise.then(clearThread).catch(clearThread);
 
     return promise;
   }

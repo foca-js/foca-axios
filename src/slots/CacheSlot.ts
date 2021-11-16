@@ -63,7 +63,7 @@ export class CacheSlot {
     const { maxAge = CacheSlot.defaultMaxAge, format } = options;
     const formatConfig = CacheSlot.getFormatConfig(config);
     const key = JSON.stringify(
-      format ? format(clone(formatConfig!, false)) : formatConfig,
+      format ? format(clone(formatConfig, false)) : formatConfig,
     );
 
     const cacheData = this.cacheMap[key];

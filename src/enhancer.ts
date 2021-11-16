@@ -34,38 +34,38 @@ export interface FocaRequestConfig<D = any>
     AdapterOptions {}
 
 export interface Enhancer extends Axios {
-  request: <T = any, D = any>(
+  request: <T = unknown, D = any>(
     config?: FocaRequestConfig<D>,
   ) => FocaAxiosPromise<T, D>;
 
-  get: <T = any, D = any>(
+  get: <T = unknown, D = any>(
     url: string,
     config?: FocaRequestConfig<D>,
   ) => FocaAxiosPromise<T, D>;
-  delete: <T = any, D = any>(
+  delete: <T = unknown, D = any>(
     url: string,
     config?: FocaRequestConfig<D>,
   ) => FocaAxiosPromise<T, D>;
-  head: <T = any, D = any>(
+  head: <T = unknown, D = any>(
     url: string,
     config?: FocaRequestConfig<D>,
   ) => FocaAxiosPromise<T, D>;
-  options: <T = any, D = any>(
+  options: <T = unknown, D = any>(
     url: string,
     config?: FocaRequestConfig<D>,
   ) => FocaAxiosPromise<T, D>;
 
-  post: <T = any, D = any>(
+  post: <T = unknown, D = any>(
     url: string,
     data?: D,
     config?: FocaRequestConfig<D>,
   ) => FocaAxiosPromise<T, D>;
-  put: <T = any, D = any>(
+  put: <T = unknown, D = any>(
     url: string,
     data?: D,
     config?: FocaRequestConfig<D>,
   ) => FocaAxiosPromise<T, D>;
-  patch: <T = any, D = any>(
+  patch: <T = unknown, D = any>(
     url: string,
     data?: D,
     config?: FocaRequestConfig<D>,

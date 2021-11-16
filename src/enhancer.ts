@@ -7,6 +7,7 @@ import {
 import { overrideRequest, FocaAxiosPromise } from './libs/overrideRequest';
 import { RetrySlotOptions, RetrySlot } from './slots/RetrySlot';
 import { ShareSlot, ShareSlotOptions } from './slots/ShareSlot';
+import { RequestSlot } from './slots/RequestSlot';
 
 export interface AdapterOptions {
   /**
@@ -91,17 +92,20 @@ export const enhanceAxios = (
 
   const cache = new CacheSlot(options.cache);
   const share = new ShareSlot(options.share);
-  const retry = new RetrySlot(
-    options.retry,
+  const request = new RequestSlot(
     instance.defaults.adapter!,
     options.getHttpStatus,
   );
+  const retry = new RetrySlot(options.retry);
+  const validateRetry = retry.validate.bind(retry);
 
   instance.defaults.adapter = function focaAdapter(config: FocaRequestConfig) {
     const callback: PromiseCallback = [];
     const promise = cache.hit(config, () => {
       return share.hit(config, () => {
-        return Promise.resolve().then(() => retry.hit(config, callback));
+        return Promise.resolve().then(() =>
+          request.hit(config, callback, validateRetry),
+        );
       });
     });
 

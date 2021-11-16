@@ -1,8 +1,8 @@
 import axios, { AxiosAdapter, AxiosError, AxiosResponse, Method } from 'axios';
-import { FocaRequestConfig } from './enhancer';
+import { FocaRequestConfig } from '../enhancer';
 import createError from 'axios/lib/core/createError';
-import { PromiseCallback } from './collectPromiseCallback';
-import { mergeSlotOptions } from './mergeSlotOptions';
+import { PromiseCallback } from '../libs/collectPromiseCallback';
+import { mergeSlotOptions } from '../libs/mergeSlotOptions';
 
 export interface RetrySlotOptions {
   /**

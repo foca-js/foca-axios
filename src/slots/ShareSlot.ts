@@ -1,9 +1,9 @@
 import axios, { AxiosError, AxiosResponse, Method } from 'axios';
 import createError from 'axios/lib/core/createError';
 import clone from 'clone';
-import { cloneResponse } from './cloneResponse';
-import { FocaRequestConfig } from './enhancer';
-import { mergeSlotOptions } from './mergeSlotOptions';
+import { cloneResponse } from '../libs/cloneResponse';
+import { FocaRequestConfig } from '../enhancer';
+import { mergeSlotOptions } from '../libs/mergeSlotOptions';
 
 export interface ShareSlotOptions {
   /**

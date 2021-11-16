@@ -9,14 +9,24 @@
 
 # 特性
 
-- 共享相同的请求，拒绝重复
-- 请求失败重试，让服务更稳定
-- 缓存成功的数据，减少服务器压力
-- 优化 axios 返回值，加速开发节奏
-- 专注 Typescript 极致体验
+- 合并相同的并发请求
+- 失败重试
+- 缓存成功的响应数据
+- 优化 axios 返回值
 
 # 安装
 
 ```bash
 yarn add axios foca-axios-enhancer
+```
+
+# 使用
+
+```typescript
+// File: http.ts
+import axios from 'axios';
+import { enhanceAxios } from 'foca-axios-enhancer';
+
+const instance = axios.create();
+export const http = enhanceAxios(instance); // http === instance
 ```

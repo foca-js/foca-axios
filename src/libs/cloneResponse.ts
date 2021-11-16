@@ -1,7 +1,7 @@
 import clone from 'clone';
 import assign from 'object-assign';
 import { AxiosResponse } from 'axios';
-import { FocaRequestConfig } from '.';
+import { FocaRequestConfig } from '..';
 
 /**
  * request作为XMLHttpRequest被clone时会出错

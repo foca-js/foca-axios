@@ -1,12 +1,12 @@
 import { Axios, AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
-import { CacheSlot, CacheSlotOptions } from './CacheSlot';
+import { CacheSlot, CacheSlotOptions } from './slots/CacheSlot';
 import {
   collectPromiseCallback,
   PromiseCallback,
-} from './collectPromiseCallback';
-import { overrideRequest, FocaAxiosPromise } from './overrideRequest';
-import { RetrySlotOptions, RetrySlot } from './RetrySlot';
-import { ShareSlot, ShareSlotOptions } from './ShareSlot';
+} from './libs/collectPromiseCallback';
+import { overrideRequest, FocaAxiosPromise } from './libs/overrideRequest';
+import { RetrySlotOptions, RetrySlot } from './slots/RetrySlot';
+import { ShareSlot, ShareSlotOptions } from './slots/ShareSlot';
 
 export interface AdapterOptions {
   /**

@@ -48,7 +48,7 @@ export class CacheSlot {
 
   protected readonly cacheMap: CacheMap = {};
 
-  constructor(protected readonly options?: CacheSlotOptions) {}
+  constructor(protected readonly options?: boolean | CacheSlotOptions) {}
 
   hit(
     config: FocaRequestConfig,

@@ -6,9 +6,7 @@ import { TransformResponseHandler } from '../libs/preventTransform';
 export class RequestSlot {
   constructor(
     protected readonly originalAdapter: AxiosAdapter,
-    protected readonly getHttpStatus:
-      | ((response: AxiosResponse) => number)
-      | undefined,
+    protected readonly getHttpStatus?: (response: AxiosResponse) => number,
   ) {
     if (!originalAdapter) {
       throw new Error('axios default adapter is not found.');

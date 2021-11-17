@@ -9,9 +9,8 @@ const onReject = (err: AxiosError) => {
 };
 
 test('RequestSlot accepts an adapter', () => {
-  expect(
-    () => new RequestSlot(new Axios().defaults?.adapter!, undefined),
-  ).toThrowError();
+  const emptyAdapter = new Axios().defaults?.adapter;
+  expect(() => new RequestSlot(emptyAdapter!)).toThrowError();
 });
 
 test('Can request non-standart response', async () => {

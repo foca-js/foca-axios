@@ -13,19 +13,22 @@ export interface EnhanceOptions {
   /**
    * 相同请求共享。
    */
-  share?: ShareSlotOptions;
+  share?: boolean | ShareSlotOptions;
   /**
    * 失败后的重试。
    */
-  retry?: RetrySlotOptions;
+  retry?: boolean | RetrySlotOptions;
   /**
-   * 响应成功的缓存。建议默认关闭，仅在基本不会变更的get请求上做缓存。
+   * 缓存响应成功的数据。建议默认关闭，仅在不需要增删改的请求上做缓存。
    */
-  cache?: CacheSlotOptions;
+  cache?: boolean | CacheSlotOptions;
   /**
    * 一些接口偏向于把错误码放到响应数据中，httpStatus总是设置成200。
+   * 你需要实现该方法以返回正确的status，这样axios才会判定为是异常的请求。
    *
-   * 这种情况下，你需要实现该回调函数返回正确的status。
+   * 另一方面，只有异常的请求才会触发重试，所以需要重试的非标准接口必须实现该方法。
+   *
+   * @see Axios.defaults.validateStatus
    */
   getHttpStatus?: (response: AxiosResponse) => number;
 }

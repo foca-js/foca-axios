@@ -5,18 +5,25 @@ interface BaseConfig {
 }
 
 export const mergeSlotOptions = <T extends BaseConfig>(
-  globalOptions?: T,
-  options?: T,
+  globalOptions?: boolean | T,
+  localOptions?: boolean | T,
 ): T => {
-  if (!globalOptions && !options) {
+  if (!globalOptions && !localOptions) {
     return <T>{ enable: false };
   }
 
-  const next: T = assign({}, globalOptions, options);
+  const globalOpts: BaseConfig | undefined =
+    typeof globalOptions === 'boolean'
+      ? { enable: globalOptions }
+      : globalOptions;
+  const localOpts: BaseConfig | undefined =
+    typeof localOptions === 'boolean' ? { enable: localOptions } : localOptions;
 
-  if (options && options.enable !== false) {
+  const next = assign({}, globalOpts, localOpts);
+
+  if (localOpts && localOpts.enable !== false) {
     next.enable = true;
   }
 
-  return next;
+  return next as T;
 };

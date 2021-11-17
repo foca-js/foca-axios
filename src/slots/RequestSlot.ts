@@ -1,7 +1,7 @@
 import { AxiosAdapter, AxiosError, AxiosResponse } from 'axios';
 import createError from 'axios/lib/core/createError';
 import { FocaRequestConfig } from '../enhancer';
-import { PromiseCallback } from '../libs/collectPromiseCallback';
+import { TransformResponseHandler } from '../libs/preventTransform';
 
 export class RequestSlot {
   constructor(
@@ -17,7 +17,7 @@ export class RequestSlot {
 
   hit(
     config: FocaRequestConfig,
-    [onResolve, onReject]: PromiseCallback,
+    [onResolve, onReject]: TransformResponseHandler,
     shouldLoop: (
       err: AxiosError,
       config: FocaRequestConfig,
@@ -27,7 +27,7 @@ export class RequestSlot {
     const loop = (currentTimes: number): Promise<any> => {
       return this.originalAdapter(config)
         .then(onResolve, onReject)
-        .then((response) => {
+        .then((response: AxiosResponse) => {
           const getHttpStatus = config.getHttpStatus || this.getHttpStatus;
 
           if (config.validateStatus && getHttpStatus) {

@@ -1,15 +1,15 @@
 import { Axios, AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 import { CacheSlot, CacheSlotOptions } from './slots/CacheSlot';
 import {
-  collectPromiseCallback,
-  PromiseCallback,
-} from './libs/collectPromiseCallback';
+  preventTransform,
+  TransformResponseHandler,
+} from './libs/preventTransform';
 import { overrideRequest, FocaAxiosPromise } from './libs/overrideRequest';
 import { RetrySlotOptions, RetrySlot } from './slots/RetrySlot';
 import { ShareSlot, ShareSlotOptions } from './slots/ShareSlot';
 import { RequestSlot } from './slots/RequestSlot';
 
-export interface AdapterOptions {
+export interface EnhanceOptions {
   /**
    * 相同请求共享。
    */
@@ -32,7 +32,7 @@ export interface AdapterOptions {
 
 export interface FocaRequestConfig<D = any>
   extends AxiosRequestConfig<D>,
-    AdapterOptions {}
+    EnhanceOptions {}
 
 export interface Enhancer extends Axios {
   request: <T = unknown, D = any>(
@@ -86,7 +86,7 @@ export interface Enhancer extends Axios {
  */
 export const enhanceAxios = (
   instance: AxiosInstance,
-  options: AdapterOptions = {},
+  options: EnhanceOptions = {},
 ): Enhancer => {
   overrideRequest(instance);
 
@@ -100,18 +100,17 @@ export const enhanceAxios = (
   const validateRetry = retry.validate.bind(retry);
 
   instance.defaults.adapter = function focaAdapter(config: FocaRequestConfig) {
-    const callback: PromiseCallback = [];
+    const transformHandler: TransformResponseHandler = [];
+
     const promise = cache.hit(config, () => {
       return share.hit(config, () => {
         return Promise.resolve().then(() =>
-          request.hit(config, callback, validateRetry),
+          request.hit(config, transformHandler, validateRetry),
         );
       });
     });
 
-    collectPromiseCallback(promise, callback);
-
-    return promise;
+    return preventTransform(promise, transformHandler);
   };
 
   // @ts-expect-error

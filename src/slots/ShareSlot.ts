@@ -106,7 +106,7 @@ export class ShareSlot {
      * then/catch 在 chrome@32 引入，除了IE之外基本都支持了。
      * finally 在 chrome@63 引入，支持得比较晚，不建议使用。
      */
-    promise.then(clearThread).catch(clearThread);
+    promise.then(clearThread, clearThread);
 
     return promise;
   }

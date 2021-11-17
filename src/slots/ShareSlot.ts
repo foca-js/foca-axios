@@ -22,6 +22,10 @@ export interface ShareSlotOptions {
    * 允许直接更改formatConfig对象，不会影响请求结果。
    */
   format?: (formatConfig: ShareFormatConfig) => object | string;
+  /**
+   * 对于过滤后初步允许共享的请求，执行该方法再次确认。
+   */
+  validate?(config: FocaRequestConfig): boolean;
 }
 
 type FormatKeys = typeof ShareSlot['formatKeys'][number];
@@ -58,15 +62,19 @@ export class ShareSlot {
     newThread: (config: FocaRequestConfig) => Promise<AxiosResponse>,
   ): Promise<AxiosResponse> {
     const options = mergeSlotOptions(this.options, config.share);
-    const { format, allowedMethods = ShareSlot.defaultAllowedMethods } =
-      options;
+    const {
+      allowedMethods = ShareSlot.defaultAllowedMethods,
+      format,
+      validate,
+    } = options;
 
     const enable =
       options.enable !== false &&
       (isForceEnable(config.share) ||
         allowedMethods.includes(
           config.method!.toLowerCase() as `${Lowercase<Method>}`,
-        ));
+        )) &&
+      (!validate || validate(config));
 
     if (!enable) {
       return newThread(config);

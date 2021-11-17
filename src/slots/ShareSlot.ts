@@ -4,6 +4,7 @@ import clone from 'clone';
 import { cloneResponse } from '../libs/cloneResponse';
 import { FocaRequestConfig } from '../enhancer';
 import { mergeSlotOptions } from '../libs/mergeSlotOptions';
+import { isForceEnable } from '../libs/isForceEnable';
 
 export interface ShareSlotOptions {
   /**
@@ -62,9 +63,10 @@ export class ShareSlot {
 
     const enable =
       options.enable !== false &&
-      allowedMethods.includes(
-        config.method!.toLowerCase() as `${Lowercase<Method>}`,
-      );
+      (isForceEnable(config.share) ||
+        allowedMethods.includes(
+          config.method!.toLowerCase() as `${Lowercase<Method>}`,
+        ));
 
     if (!enable) {
       return newThread(config);

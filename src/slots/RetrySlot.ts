@@ -1,5 +1,6 @@
 import axios, { AxiosError, AxiosResponse, Method } from 'axios';
 import { FocaRequestConfig } from '../enhancer';
+import { isForceEnable } from '../libs/isForceEnable';
 import { mergeSlotOptions } from '../libs/mergeSlotOptions';
 
 export interface RetrySlotOptions {
@@ -62,9 +63,10 @@ export class RetrySlot {
       options.enable !== false &&
       currentTimes <= maxTimes &&
       !axios.isCancel(err) &&
-      allowedMethods.includes(
-        config.method!.toLowerCase() as `${Lowercase<Method>}`,
-      ) &&
+      (isForceEnable(config.retry) ||
+        allowedMethods.includes(
+          config.method!.toLowerCase() as `${Lowercase<Method>}`,
+        )) &&
       (!err.response || this.isAllowedStatus(err.response, allowedHttpStatus));
 
     return new Promise((resolve) => {

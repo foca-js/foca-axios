@@ -1,4 +1,4 @@
-import { AxiosResponse } from 'axios';
+import { AxiosResponse, Method } from 'axios';
 import clone from 'clone';
 import { cloneResponse } from '../libs/cloneResponse';
 import { FocaRequestConfig } from '../enhancer';
@@ -15,6 +15,11 @@ export interface CacheSlotOptions {
    * @see CacheSlot.defaultMaxAge
    */
   maxAge?: number;
+  /**
+   * 允许缓存的请求方法，默认：['get']
+   * @see CacheSlot.defaultAllowedMethods
+   */
+  allowedMethods?: `${Lowercase<Method>}`[];
   /**
    * 作为缓存的依赖，你可以过滤掉无关的属性，容易命中缓存。
    *
@@ -46,6 +51,10 @@ export class CacheSlot {
     'headers',
   ] as const;
 
+  static defaultAllowedMethods: NonNullable<
+    CacheSlotOptions['allowedMethods']
+  > = ['get'];
+
   protected readonly cacheMap: CacheMap = {};
 
   constructor(protected readonly options?: boolean | CacheSlotOptions) {}
@@ -55,8 +64,14 @@ export class CacheSlot {
     newCache: (config: FocaRequestConfig) => Promise<AxiosResponse>,
   ): Promise<AxiosResponse> {
     const options = mergeSlotOptions(this.options, config.cache);
+    const { allowedMethods = CacheSlot.defaultAllowedMethods } = options;
+    const enable =
+      options.enable !== false &&
+      allowedMethods.includes(
+        config.method!.toLowerCase() as `${Lowercase<Method>}`,
+      );
 
-    if (options.enable === false) {
+    if (!enable) {
       return newCache(config);
     }
 

@@ -50,7 +50,7 @@ export class ShareSlot {
     [K: string]: Promise<AxiosResponse>;
   }> = {};
 
-  constructor(protected readonly options?: ShareSlotOptions) {}
+  constructor(protected readonly options?: boolean | ShareSlotOptions) {}
 
   hit(
     config: FocaRequestConfig,

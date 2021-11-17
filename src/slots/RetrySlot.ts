@@ -43,7 +43,7 @@ export class RetrySlot {
 
   static defaultDelay = 100;
 
-  constructor(protected readonly options?: RetrySlotOptions) {}
+  constructor(protected readonly options?: boolean | RetrySlotOptions) {}
 
   validate(
     err: AxiosError,

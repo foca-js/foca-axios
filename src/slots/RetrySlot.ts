@@ -29,6 +29,10 @@ export interface RetrySlotOptions {
    * @see RetrySlot.defaultAllowedHttpStatus
    */
   allowedHttpStatus?: (number | [number, number])[];
+  /**
+   * 对于过滤后初步允许重试的请求，执行该方法再次确认。
+   */
+  validate?(config: FocaRequestConfig): boolean;
 }
 
 export class RetrySlot {
@@ -57,6 +61,7 @@ export class RetrySlot {
       maxTimes = RetrySlot.defaultMaxTimes,
       allowedMethods = RetrySlot.defaultAllowedMethods,
       allowedHttpStatus = RetrySlot.defaultAllowedHttpStatus,
+      validate,
     } = options;
 
     const enable =
@@ -67,7 +72,9 @@ export class RetrySlot {
         allowedMethods.includes(
           config.method!.toLowerCase() as `${Lowercase<Method>}`,
         )) &&
-      (!err.response || this.isAllowedStatus(err.response, allowedHttpStatus));
+      (!err.response ||
+        this.isAllowedStatus(err.response, allowedHttpStatus)) &&
+      (!validate || validate(config));
 
     return new Promise((resolve) => {
       if (enable) {

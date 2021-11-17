@@ -23,10 +23,13 @@ export interface CacheSlotOptions {
   allowedMethods?: `${Lowercase<Method>}`[];
   /**
    * 作为缓存的依赖，你可以过滤掉无关的属性，容易命中缓存。
-   *
    * 允许直接更改formatConfig对象，不会影响请求结果。
    */
-  format?: (formatConfig: CacheFormatConfig) => object | string;
+  format?(formatConfig: CacheFormatConfig): object | string;
+  /**
+   * 对于过滤后初步允许缓存的请求，执行该方法再次确认。
+   */
+  validate?(config: FocaRequestConfig): boolean;
 }
 
 type CacheMap = Partial<{
@@ -65,13 +68,15 @@ export class CacheSlot {
     newCache: (config: FocaRequestConfig) => Promise<AxiosResponse>,
   ): Promise<AxiosResponse> {
     const options = mergeSlotOptions(this.options, config.cache);
-    const { allowedMethods = CacheSlot.defaultAllowedMethods } = options;
+    const { allowedMethods = CacheSlot.defaultAllowedMethods, validate } =
+      options;
     const enable =
       options.enable !== false &&
       (isForceEnable(config.cache) ||
         allowedMethods.includes(
           config.method!.toLowerCase() as `${Lowercase<Method>}`,
-        ));
+        )) &&
+      (!validate || validate(config));
 
     if (!enable) {
       return newCache(config);
@@ -94,11 +99,9 @@ export class CacheSlot {
     }
 
     return newCache(config).then((response) => {
-      const next = cloneResponse(response, response.config);
-
       this.cacheMap[key] = {
         time: Date.now(),
-        response: next,
+        response: cloneResponse(response, response.config),
       };
 
       return response;

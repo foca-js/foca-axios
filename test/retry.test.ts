@@ -54,3 +54,31 @@ test('The aborted request should not retry', async () => {
     retry.validate(new Cancel('') as AxiosError, config, 1),
   ).resolves.toBeFalsy();
 });
+
+test('Should match http status', async () => {
+  const retry = new RetrySlot({});
+  const retry1 = new RetrySlot({
+    allowedHttpStatus: [[400, 500], 600],
+  });
+
+  const config: FocaRequestConfig = {
+    url: '/users',
+    method: 'get',
+  };
+  const error = createError(
+    '',
+    config,
+    null,
+    {},
+    {
+      status: 600,
+      data: [],
+      statusText: 'Bad Request',
+      headers: {},
+      config,
+    },
+  );
+
+  await expect(retry.validate(error, config, 1)).resolves.toBeFalsy();
+  await expect(retry1.validate(error, config, 1)).resolves.toBeTruthy();
+});

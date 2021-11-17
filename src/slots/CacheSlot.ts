@@ -3,6 +3,7 @@ import clone from 'clone';
 import { cloneResponse } from '../libs/cloneResponse';
 import { FocaRequestConfig } from '../enhancer';
 import { mergeSlotOptions } from '../libs/mergeSlotOptions';
+import { isForceEnable } from '../libs/isForceEnable';
 
 export interface CacheSlotOptions {
   /**
@@ -67,9 +68,10 @@ export class CacheSlot {
     const { allowedMethods = CacheSlot.defaultAllowedMethods } = options;
     const enable =
       options.enable !== false &&
-      allowedMethods.includes(
-        config.method!.toLowerCase() as `${Lowercase<Method>}`,
-      );
+      (isForceEnable(config.cache) ||
+        allowedMethods.includes(
+          config.method!.toLowerCase() as `${Lowercase<Method>}`,
+        ));
 
     if (!enable) {
       return newCache(config);

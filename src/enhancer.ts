@@ -102,11 +102,11 @@ export const enhanceAxios = (
   instance.defaults.adapter = function focaAdapter(config: FocaRequestConfig) {
     const transformHandler: TransformResponseHandler = [];
 
-    const promise = cache.hit(config, () => {
-      return share.hit(config, () => {
-        return Promise.resolve().then(() =>
-          request.hit(config, transformHandler, validateRetry),
-        );
+    const promise = Promise.resolve().then(() => {
+      return cache.hit(config, () => {
+        return share.hit(config, () => {
+          return request.hit(config, transformHandler, validateRetry);
+        });
       });
     });
 

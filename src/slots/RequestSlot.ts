@@ -49,13 +49,12 @@ export class RequestSlot {
           return response;
         })
         .catch((err: AxiosError) => {
-          return shouldLoop(err, config, currentTimes + 1)
-            .then((enable) => {
-              return enable
-                ? Promise.resolve(loop(currentTimes + 1))
-                : Promise.reject(err);
-            })
-            .catch(() => Promise.reject(err));
+          return shouldLoop(err, config, currentTimes + 1).then(
+            (enable) => {
+              return enable ? loop(currentTimes + 1) : Promise.reject(err);
+            },
+            () => Promise.reject(err),
+          );
         });
     };
 

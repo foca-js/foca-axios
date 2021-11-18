@@ -3,7 +3,7 @@ import { FocaRequestConfig } from '../enhancer';
 import { isForceEnable } from '../libs/isForceEnable';
 import { mergeSlotOptions } from '../libs/mergeSlotOptions';
 
-export interface RetrySlotOptions {
+export interface RetryOptions {
   /**
    * 失败的请求是否允许重试，默认：true
    */
@@ -36,19 +36,23 @@ export interface RetrySlotOptions {
 }
 
 export class RetrySlot {
-  static defaultAllowedMethods: NonNullable<
-    RetrySlotOptions['allowedMethods']
-  > = ['get', 'head', 'put', 'patch', 'delete'];
+  static defaultAllowedMethods: NonNullable<RetryOptions['allowedMethods']> = [
+    'get',
+    'head',
+    'put',
+    'patch',
+    'delete',
+  ];
 
   static defaultAllowedHttpStatus: NonNullable<
-    RetrySlotOptions['allowedHttpStatus']
+    RetryOptions['allowedHttpStatus']
   > = [[100, 199], 429, [500, 599]];
 
   static defaultMaxTimes = 3;
 
   static defaultDelay = 100;
 
-  constructor(protected readonly options?: boolean | RetrySlotOptions) {}
+  constructor(protected readonly options?: boolean | RetryOptions) {}
 
   validate(
     err: AxiosError,
@@ -89,7 +93,7 @@ export class RetrySlot {
 
   protected isAllowedStatus(
     response: AxiosResponse,
-    allowedHttpStatus: NonNullable<RetrySlotOptions['allowedHttpStatus']>,
+    allowedHttpStatus: NonNullable<RetryOptions['allowedHttpStatus']>,
   ) {
     const currentStatus = response.status;
 

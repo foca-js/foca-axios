@@ -1,11 +1,11 @@
 import { Axios, AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
-import { CacheSlot, CacheSlotOptions } from './slots/CacheSlot';
+import { CacheSlot, CacheOptions } from './slots/CacheSlot';
 import {
   preventTransform,
   TransformResponseHandler,
 } from './libs/preventTransform';
 import { overrideRequest, FocaAxiosPromise } from './libs/overrideRequest';
-import { RetrySlotOptions, RetrySlot } from './slots/RetrySlot';
+import { RetryOptions, RetrySlot } from './slots/RetrySlot';
 import { ThrottleSlot, ThrottleOptions } from './slots/ThrottleSlot';
 import { RequestSlot } from './slots/RequestSlot';
 
@@ -17,11 +17,11 @@ export interface EnhanceOptions {
   /**
    * 失败后的重试。
    */
-  retry?: boolean | RetrySlotOptions;
+  retry?: boolean | RetryOptions;
   /**
    * 缓存响应成功的数据。建议默认关闭，仅在不需要增删改的请求上做缓存。
    */
-  cache?: boolean | CacheSlotOptions;
+  cache?: boolean | CacheOptions;
   /**
    * 一些接口偏向于把错误码放到响应数据中，httpStatus总是设置成200。
    * 你需要实现该方法以返回正确的status，这样axios才会判定为是异常的请求。

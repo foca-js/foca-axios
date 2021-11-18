@@ -1,3 +1,9 @@
+## [0.3.0](https://github.com/foca-js/foca-axios-enhancer/compare/v0.2.0...v0.3.0)
+
+#### 2021-11-18
+
+- 属性 share 重命名为 throttle
+
 ## [0.2.0](https://github.com/foca-js/foca-axios-enhancer/compare/v0.1.0...v0.2.0)
 
 #### 2021-11-17

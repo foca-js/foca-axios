@@ -5,7 +5,7 @@ import { FocaRequestConfig } from '../enhancer';
 import { mergeSlotOptions } from '../libs/mergeSlotOptions';
 import { isForceEnable } from '../libs/isForceEnable';
 
-export interface CacheSlotOptions {
+export interface CacheOptions {
   /**
    * 是否允许使用缓存。
    */
@@ -55,13 +55,13 @@ export class CacheSlot {
     'headers',
   ] as const;
 
-  static defaultAllowedMethods: NonNullable<
-    CacheSlotOptions['allowedMethods']
-  > = ['get'];
+  static defaultAllowedMethods: NonNullable<CacheOptions['allowedMethods']> = [
+    'get',
+  ];
 
   protected readonly cacheMap: CacheMap = {};
 
-  constructor(protected readonly options?: boolean | CacheSlotOptions) {}
+  constructor(protected readonly options?: boolean | CacheOptions) {}
 
   hit(
     config: FocaRequestConfig,

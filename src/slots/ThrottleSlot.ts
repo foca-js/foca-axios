@@ -6,14 +6,14 @@ import { FocaRequestConfig } from '../enhancer';
 import { mergeSlotOptions } from '../libs/mergeSlotOptions';
 import { isForceEnable } from '../libs/isForceEnable';
 
-export interface ShareSlotOptions {
+export interface ThrottleOptions {
   /**
    * 是否允许共享，默认：true
    */
   enable?: boolean;
   /**
    * 允许共享的方法，默认：['get', 'head', 'put', 'patch', 'delete']
-   * @see ShareSlot.defaultAllowedMethods
+   * @see ThrottleSlot.defaultAllowedMethods
    */
   allowedMethods?: `${Lowercase<Method>}`[];
   /**
@@ -21,18 +21,20 @@ export interface ShareSlotOptions {
    *
    * 允许直接更改formatConfig对象，不会影响请求结果。
    */
-  format?: (formatConfig: ShareFormatConfig) => object | string;
+  format?: (formatConfig: ThrottleFormatConfig) => object | string;
   /**
    * 对于过滤后初步允许共享的请求，执行该方法再次确认。
    */
   validate?(config: FocaRequestConfig): boolean;
 }
 
-type FormatKeys = typeof ShareSlot['formatKeys'][number];
+type FormatKeys = typeof ThrottleSlot['formatKeys'][number];
 
-export type ShareFormatConfig = Required<Pick<FocaRequestConfig, FormatKeys>>;
+export type ThrottleFormatConfig = Required<
+  Pick<FocaRequestConfig, FormatKeys>
+>;
 
-export class ShareSlot {
+export class ThrottleSlot {
   static formatKeys = [
     'baseURL',
     'url',
@@ -47,30 +49,29 @@ export class ShareSlot {
     'xsrfHeaderName',
   ] as const;
 
-  static defaultAllowedMethods: NonNullable<
-    ShareSlotOptions['allowedMethods']
-  > = ['get', 'head', 'put', 'patch', 'delete'];
+  static defaultAllowedMethods: NonNullable<ThrottleOptions['allowedMethods']> =
+    ['get', 'head', 'put', 'patch', 'delete'];
 
   protected readonly threads: Partial<{
     [K: string]: Promise<AxiosResponse>;
   }> = {};
 
-  constructor(protected readonly options?: boolean | ShareSlotOptions) {}
+  constructor(protected readonly options?: boolean | ThrottleOptions) {}
 
   hit(
     config: FocaRequestConfig,
     newThread: (config: FocaRequestConfig) => Promise<AxiosResponse>,
   ): Promise<AxiosResponse> {
-    const options = mergeSlotOptions(this.options, config.share);
+    const options = mergeSlotOptions(this.options, config.throttle);
     const {
-      allowedMethods = ShareSlot.defaultAllowedMethods,
+      allowedMethods = ThrottleSlot.defaultAllowedMethods,
       format,
       validate,
     } = options;
 
     const enable =
       options.enable !== false &&
-      (isForceEnable(config.share) ||
+      (isForceEnable(config.throttle) ||
         allowedMethods.includes(
           config.method!.toLowerCase() as `${Lowercase<Method>}`,
         )) &&
@@ -80,7 +81,7 @@ export class ShareSlot {
       return newThread(config);
     }
 
-    const formatConfig = ShareSlot.getFormatConfig(config);
+    const formatConfig = ThrottleSlot.getFormatConfig(config);
     const key = JSON.stringify(
       format ? format(clone(formatConfig, false)) : formatConfig,
     );
@@ -123,10 +124,10 @@ export class ShareSlot {
 
   protected static getFormatConfig(
     config: FocaRequestConfig,
-  ): ShareFormatConfig {
+  ): ThrottleFormatConfig {
     return this.formatKeys.reduce((carry, key) => {
       carry[key] = config[key];
       return carry;
-    }, <Pick<FocaRequestConfig, FormatKeys>>{}) as ShareFormatConfig;
+    }, <Pick<FocaRequestConfig, FormatKeys>>{}) as ThrottleFormatConfig;
   }
 }

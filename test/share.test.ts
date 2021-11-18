@@ -1,22 +1,22 @@
-import { FocaRequestConfig, ShareSlot } from '../src';
+import { FocaRequestConfig, ThrottleSlot } from '../src';
 import { rejectRespone, resolveResponse } from './utils';
 
-test('Common request will not share', async () => {
-  const share = new ShareSlot();
+test('Common request will not throttle', async () => {
+  const throttle = new ThrottleSlot();
   const config: FocaRequestConfig = {
     method: 'get',
     url: '/users',
   };
 
   const [a, b] = await Promise.all([
-    share.hit(config, resolveResponse),
-    share.hit(config, resolveResponse),
+    throttle.hit(config, resolveResponse),
+    throttle.hit(config, resolveResponse),
   ]);
   expect(a.data).not.toEqual(b.data);
 });
 
-test('Same request can be shared', async () => {
-  const share = new ShareSlot({});
+test('Same request can hit throttle', async () => {
+  const throttle = new ThrottleSlot({});
   const config: FocaRequestConfig = {
     method: 'get',
     url: '/users',
@@ -24,14 +24,14 @@ test('Same request can be shared', async () => {
   };
 
   const [a, b] = await Promise.all([
-    share.hit(config, resolveResponse),
-    share.hit(config, resolveResponse),
+    throttle.hit(config, resolveResponse),
+    throttle.hit(config, resolveResponse),
   ]);
   expect(a.data).toEqual(b.data);
 });
 
-test('Different request can not share to each other', async () => {
-  const share = new ShareSlot({});
+test('Different request can not throttle to each other', async () => {
+  const throttle = new ThrottleSlot({});
   const config1: FocaRequestConfig = {
     method: 'get',
     url: '/users',
@@ -42,14 +42,14 @@ test('Different request can not share to each other', async () => {
   };
 
   const [a, b] = await Promise.all([
-    share.hit(config1, resolveResponse),
-    share.hit(config2, resolveResponse),
+    throttle.hit(config1, resolveResponse),
+    throttle.hit(config2, resolveResponse),
   ]);
   expect(a.data).not.toEqual(b.data);
 });
 
-test('Format the config to hit the share thread', async () => {
-  const share = new ShareSlot({
+test('Format the config to hit the throttle thread', async () => {
+  const throttle = new ThrottleSlot({
     format(config) {
       Reflect.deleteProperty(config, 'url');
       return config;
@@ -66,14 +66,14 @@ test('Format the config to hit the share thread', async () => {
   };
 
   const [a, b] = await Promise.all([
-    share.hit(config1, resolveResponse),
-    share.hit(config2, resolveResponse),
+    throttle.hit(config1, resolveResponse),
+    throttle.hit(config2, resolveResponse),
   ]);
   expect(a.data).toEqual(b.data);
 });
 
-test('Force to enable share and ignore the allowed methods', async () => {
-  const share = new ShareSlot({
+test('Force to enable throttle and ignore the allowed methods', async () => {
+  const throttle = new ThrottleSlot({
     allowedMethods: ['get', 'delete'],
     format(config) {
       Reflect.deleteProperty(config, 'method');
@@ -91,54 +91,54 @@ test('Force to enable share and ignore the allowed methods', async () => {
   };
   const config3: FocaRequestConfig = {
     ...config2,
-    share: {
+    throttle: {
       allowedMethods: ['post'],
     },
   };
 
   const [a, b, c] = await Promise.all([
-    share.hit(config1, resolveResponse),
-    share.hit(config2, resolveResponse),
-    share.hit(config3, resolveResponse),
+    throttle.hit(config1, resolveResponse),
+    throttle.hit(config2, resolveResponse),
+    throttle.hit(config3, resolveResponse),
   ]);
   expect(a.data).not.toEqual(b.data);
   expect(a.data).toEqual(c.data);
 });
 
-test('Ending share thread after promise resolved', async () => {
-  const share = new ShareSlot({});
+test('Remove throttle thread after promise resolved', async () => {
+  const throttle = new ThrottleSlot({});
   const config: FocaRequestConfig = {
     method: 'get',
     url: '/users',
     params: {},
   };
 
-  const a = await share.hit(config, resolveResponse);
-  const b = await share.hit(config, resolveResponse);
+  const a = await throttle.hit(config, resolveResponse);
+  const b = await throttle.hit(config, resolveResponse);
 
   expect(a.data).not.toEqual(b.data);
 });
 
-test('Ending share thread after promise rejected', async () => {
-  const share = new ShareSlot({});
+test('Remove throttle thread after promise rejected', async () => {
+  const throttle = new ThrottleSlot({});
   const config: FocaRequestConfig = {
     method: 'get',
     url: '/users',
     params: {},
   };
 
-  const a = share.hit(config, rejectRespone);
-  const b = share.hit(config, resolveResponse);
+  const a = throttle.hit(config, rejectRespone);
+  const b = throttle.hit(config, resolveResponse);
 
   await expect(a).rejects.toThrowError();
   await expect(b).rejects.toThrowError();
 
-  const c = await share.hit(config, resolveResponse);
+  const c = await throttle.hit(config, resolveResponse);
   expect(c.data).toHaveProperty('num');
 });
 
 test('config should not be shared', async () => {
-  const share = new ShareSlot({});
+  const throttle = new ThrottleSlot({});
   const config1: FocaRequestConfig = {
     method: 'get',
     url: '/users',
@@ -149,8 +149,8 @@ test('config should not be shared', async () => {
   };
 
   const [a, b] = await Promise.all([
-    share.hit(config1, resolveResponse),
-    share.hit(config2, resolveResponse),
+    throttle.hit(config1, resolveResponse),
+    throttle.hit(config2, resolveResponse),
   ]);
 
   expect(a.config !== b.config).toBeTruthy();

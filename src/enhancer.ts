@@ -6,14 +6,14 @@ import {
 } from './libs/preventTransform';
 import { overrideRequest, FocaAxiosPromise } from './libs/overrideRequest';
 import { RetrySlotOptions, RetrySlot } from './slots/RetrySlot';
-import { ShareSlot, ShareSlotOptions } from './slots/ShareSlot';
+import { ThrottleSlot, ThrottleOptions } from './slots/ThrottleSlot';
 import { RequestSlot } from './slots/RequestSlot';
 
 export interface EnhanceOptions {
   /**
    * 相同请求共享。
    */
-  share?: boolean | ShareSlotOptions;
+  throttle?: boolean | ThrottleOptions;
   /**
    * 失败后的重试。
    */
@@ -94,7 +94,7 @@ export const enhanceAxios = (
   overrideRequest(instance);
 
   const cache = new CacheSlot(options.cache);
-  const share = new ShareSlot(options.share);
+  const throttle = new ThrottleSlot(options.throttle);
   const request = new RequestSlot(
     instance.defaults.adapter!,
     options.getHttpStatus,
@@ -107,7 +107,7 @@ export const enhanceAxios = (
 
     const promise = Promise.resolve().then(() => {
       return cache.hit(config, () => {
-        return share.hit(config, () => {
+        return throttle.hit(config, () => {
           return request.hit(config, transformHandler, validateRetry);
         });
       });

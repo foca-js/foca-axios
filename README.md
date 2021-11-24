@@ -25,8 +25,8 @@ yarn add axios foca-axios
 ```typescript
 // File: http.ts
 import axios from 'axios';
-import { enhanceAxios } from 'foca-axios';
+import { enhance } from 'foca-axios';
 
 const instance = axios.create();
-export const http = enhanceAxios(instance); // http === instance
+export const http = enhance(instance); // http === instance
 ```

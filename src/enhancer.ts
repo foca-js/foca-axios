@@ -80,14 +80,15 @@ export interface Enhancer extends Axios {
  * axios增强适配器
  * ```typescript
  * import axios from 'axios';
+ * import { enhance } from 'foca-axios';
  *
  * const instance = axios.create(...);
- * export const http = enhanceAxios(instance);
+ * export const http = enhance(instance);
  * http === instance // true
  * ```
  * 增强后的实例与传入的实例是同一个，只不过类型提示变了。
  */
-export const enhanceAxios = (
+export const enhance = (
   instance: AxiosInstance,
   options: EnhanceOptions = {},
 ): Enhancer => {

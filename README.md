@@ -1,11 +1,11 @@
-# foca-axios-enhancer
+# foca-axios
 
 针对 axios 请求库的增强型适配器。
 
-[![License](https://img.shields.io/github/license/foca-js/foca-axios-enhancer)](https://github.com/foca-js/foca-axios-enhancer/blob/master/LICENSE)
-[![GitHub Workflow Status (branch)](https://img.shields.io/github/workflow/status/foca-js/foca-axios-enhancer/CI/master)](https://github.com/foca-js/foca-axios-enhancer/actions)
-[![Codecov](https://img.shields.io/codecov/c/github/foca-js/foca-axios-enhancer)](https://codecov.io/gh/foca-js/foca-axios-enhancer)
-[![npm](https://img.shields.io/npm/v/foca-axios-enhancer)](https://www.npmjs.com/package/foca-axios-enhancer)
+[![License](https://img.shields.io/github/license/foca-js/foca-axios)](https://github.com/foca-js/foca-axios/blob/master/LICENSE)
+[![GitHub Workflow Status (branch)](https://img.shields.io/github/workflow/status/foca-js/foca-axios/CI/master)](https://github.com/foca-js/foca-axios/actions)
+[![Codecov](https://img.shields.io/codecov/c/github/foca-js/foca-axios)](https://codecov.io/gh/foca-js/foca-axios)
+[![npm](https://img.shields.io/npm/v/foca-axios)](https://www.npmjs.com/package/foca-axios)
 
 # 特性
 
@@ -17,7 +17,7 @@
 # 安装
 
 ```bash
-yarn add axios foca-axios-enhancer
+yarn add axios foca-axios
 ```
 
 # 使用
@@ -25,7 +25,7 @@ yarn add axios foca-axios-enhancer
 ```typescript
 // File: http.ts
 import axios from 'axios';
-import { enhanceAxios } from 'foca-axios-enhancer';
+import { enhanceAxios } from 'foca-axios';
 
 const instance = axios.create();
 export const http = enhanceAxios(instance); // http === instance

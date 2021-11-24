@@ -1,7 +1,7 @@
 {
-  "name": "foca-axios-enhancer",
+  "name": "foca-axios",
   "version": "0.3.0",
-  "repository": "git@github.com:foca-js/foca-axios-enhancer.git",
+  "repository": "git@github.com:foca-js/foca-axios.git",
   "author": "fwh1990",
   "license": "MIT",
   "main": "lib/index.js",
@@ -26,20 +26,26 @@
     "README.md",
     "CHANGELOG.md"
   ],
+  "commitlint": {
+    "extends": [
+      "@commitlint/config-conventional"
+    ]
+  },
   "peerDependencies": {
-    "axios": ">=0.23.0 <1.0.0"
+    "axios": ">=0.23.0 <=0.99.99"
   },
   "dependencies": {
     "clone": "^2.1.2",
     "object-assign": "^4.1.1"
   },
   "devDependencies": {
+    "@commitlint/cli": "^15.0.0",
+    "@commitlint/config-conventional": "^15.0.0",
     "@types/clone": "^2.1.1",
     "@types/jest": "^27.0.2",
     "@types/object-assign": "^4.0.30",
     "axios": "^0.24.0",
     "axios-mock-adapter": "^1.20.0",
-    "commitlint": "^13.2.1",
     "husky": "^7.0.4",
     "jest": "^27.3.1",
     "prettier": "^2.4.1",

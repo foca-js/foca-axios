@@ -128,3 +128,46 @@ test('config should not be shared', async () => {
   expect(a.data !== b.data).toBeTruthy();
   expect(a.data).toStrictEqual(b.data);
 });
+
+test('cache can be cleared', async () => {
+  const cache = new CacheSlot({});
+  const config: FocaRequestConfig = {
+    method: 'get',
+    url: '/users',
+  };
+
+  const a = await cache.hit(config, resolveResponse);
+  cache.clear();
+  const b = await cache.hit(config, resolveResponse);
+  expect(a.data).not.toEqual(b.data);
+
+  const c = await cache.hit(config, resolveResponse);
+  expect(c.data).toEqual(b.data);
+});
+
+test('cache can be cleared with filter', async () => {
+  const cache = new CacheSlot({});
+  const config1: FocaRequestConfig = {
+    method: 'get',
+    url: '/users',
+  };
+  const config2: FocaRequestConfig = {
+    method: 'get',
+    url: '/users2',
+  };
+
+  const a = await cache.hit(config1, resolveResponse);
+  const b = await cache.hit(config2, resolveResponse);
+
+  cache.clear((config) => config.url === '/users');
+
+  const c = await cache.hit(config1, resolveResponse);
+  const d = await cache.hit(config2, resolveResponse);
+  expect(a.data).not.toEqual(c.data);
+  expect(b.data).toEqual(d.data);
+
+  cache.clear((config) => config.url === '/users2');
+
+  const e = await cache.hit(config2, resolveResponse);
+  expect(d.data).not.toEqual(e.data);
+});

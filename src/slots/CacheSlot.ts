@@ -59,7 +59,7 @@ export class CacheSlot {
     'get',
   ];
 
-  protected readonly cacheMap: CacheMap = {};
+  protected cacheMap: CacheMap = {};
 
   constructor(protected readonly options?: boolean | CacheOptions) {}
 
@@ -106,6 +106,22 @@ export class CacheSlot {
 
       return response;
     });
+  }
+
+  clear(filter?: (config: CacheFormatConfig) => boolean) {
+    if (!filter) {
+      this.cacheMap = {};
+      return;
+    }
+
+    const keys = Object.keys(this.cacheMap);
+
+    for (let i = keys.length, key: string; i-- > 0; ) {
+      key = keys[i]!;
+      if (filter(JSON.parse(key))) {
+        delete this.cacheMap[key];
+      }
+    }
   }
 
   protected static getFormatConfig(

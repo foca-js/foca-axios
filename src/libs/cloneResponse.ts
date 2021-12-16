@@ -1,5 +1,4 @@
 import clone from 'clone';
-import assign from 'object-assign';
 import { AxiosResponse } from 'axios';
 import { FocaRequestConfig } from '..';
 
@@ -11,7 +10,7 @@ export const cloneResponse = (
   response: AxiosResponse,
   config: FocaRequestConfig,
 ) => {
-  const next = assign({}, response);
+  const next = Object.assign({}, response);
 
   next.data = clone(next.data, false);
   next.headers = clone(next.headers, false);

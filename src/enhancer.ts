@@ -1,5 +1,5 @@
 import { Axios, AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
-import { CacheSlot, CacheOptions } from './slots/CacheSlot';
+import { CacheSlot, CacheOptions, CacheFormatConfig } from './slots/CacheSlot';
 import {
   preventTransform,
   TransformResponseHandler,
@@ -74,6 +74,11 @@ export interface Enhancer extends Axios {
     data?: D,
     config?: FocaRequestConfig<D>,
   ) => FocaAxiosPromise<T, D>;
+  /**
+   * 清除全部请求缓存。
+   * 如果只需要清除特定的缓存，可以传入过滤函数
+   */
+  clearCache: (filter?: (config: CacheFormatConfig) => boolean) => void;
 }
 
 /**
@@ -94,16 +99,17 @@ export const enhance = (
 ): Enhancer => {
   overrideRequest(instance);
 
+  const enhancer = instance as unknown as Enhancer;
   const cache = new CacheSlot(options.cache);
   const throttle = new ThrottleSlot(options.throttle);
   const request = new RequestSlot(
-    instance.defaults.adapter!,
+    enhancer.defaults.adapter!,
     options.getHttpStatus,
   );
   const retry = new RetrySlot(options.retry);
   const validateRetry = retry.validate.bind(retry);
 
-  instance.defaults.adapter = function focaAdapter(config: FocaRequestConfig) {
+  enhancer.defaults.adapter = function focaAdapter(config: FocaRequestConfig) {
     const transformHandler: TransformResponseHandler = [];
 
     const promise = Promise.resolve().then(() => {
@@ -117,6 +123,7 @@ export const enhance = (
     return preventTransform(promise, transformHandler);
   };
 
-  // @ts-expect-error
-  return instance;
+  enhancer.clearCache = cache.clear.bind(cache);
+
+  return enhancer;
 };

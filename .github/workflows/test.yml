@@ -1,8 +1,11 @@
-name: CI
+name: Test
 
 on:
   push:
     branches:
+      - '*'
+    tags-ignore:
+      - '*'
   pull_request:
     branches:
 
@@ -12,7 +15,7 @@ jobs:
     strategy:
       matrix:
         node-version: [12.x, 14.x, 16.x]
-        ts-version: [4.4.x]
+        ts-version: [4.4.x, 4.5.x]
         axios-version: ['0.24']
 
     runs-on: ubuntu-latest
@@ -20,7 +23,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Use Node.js ${{ matrix.node-version }} & Typescript ${{ matrix.ts-version }}
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v2
         with:
           node-version: ${{ matrix.node-version }}
       - run: |
@@ -45,16 +48,3 @@ jobs:
           name: coverage
           path: coverage
       - uses: codecov/codecov-action@v1
-  publish:
-    if: "!contains(toJson(github.event.commits), '[skip ci]')"
-    needs: test
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v1
-        with:
-          node-version: 14
-      - run: yarn install
-      - uses: JS-DevTools/npm-publish@v1
-        with:
-          token: ${{ secrets.NPM_TOKEN }}

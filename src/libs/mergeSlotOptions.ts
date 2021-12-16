@@ -1,5 +1,3 @@
-import assign from 'object-assign';
-
 interface BaseConfig {
   enable?: boolean;
 }
@@ -19,7 +17,7 @@ export const mergeSlotOptions = <T extends BaseConfig>(
   const localOpts: BaseConfig | undefined =
     typeof localOptions === 'boolean' ? { enable: localOptions } : localOptions;
 
-  const next = assign({}, globalOpts, localOpts);
+  const next = Object.assign({}, globalOpts, localOpts);
 
   if (localOpts && localOpts.enable !== false) {
     next.enable = true;

@@ -2,25 +2,29 @@
   "name": "foca-axios",
   "version": "0.4.0",
   "repository": "git@github.com:foca-js/foca-axios.git",
-  "author": "fwh1990",
+  "contributors": [
+    "罪 <fanwenhua1990@gmail.com> (https://github.com/geekact)"
+  ],
   "license": "MIT",
-  "main": "lib/index.js",
-  "module": "es/index.js",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "sideEffects": false,
   "scripts": {
     "test": "jest",
-    "prepublishOnly": "ts-prepublish",
+    "prepublishOnly": "tsup",
     "prepare": "husky install"
   },
   "exports": {
     ".": {
-      "require": "./lib/index.js",
-      "import": "./es/index.js"
-    },
-    "./": "./"
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    }
   },
   "files": [
-    "lib",
-    "es",
+    "dist",
+    "src",
     "LICENSE",
     "package.json",
     "README.md",
@@ -38,19 +42,18 @@
     "clone": "^2.1.2"
   },
   "devDependencies": {
-    "@commitlint/cli": "^15.0.0",
-    "@commitlint/config-conventional": "^15.0.0",
+    "@commitlint/cli": "^16.2.4",
+    "@commitlint/config-conventional": "^16.2.4",
     "@types/clone": "^2.1.1",
-    "@types/jest": "^27.0.3",
-    "@types/object-assign": "^4.0.30",
-    "axios": "^0.24.0",
+    "@types/jest": "^27.5.0",
+    "axios": "^0.27.2",
     "axios-mock-adapter": "^1.20.0",
-    "husky": "^7.0.4",
-    "jest": "^27.4.5",
-    "prettier": "^2.5.1",
+    "husky": "^8.0.1",
+    "jest": "^28.1.0",
+    "prettier": "^2.6.2",
     "sleep-promise": "^9.1.0",
-    "ts-jest": "^27.1.1",
-    "ts-prepublish": "^2.0.0",
-    "typescript": "^4.5.4"
+    "ts-jest": "^28.0.2",
+    "tsup": "^5.12.7",
+    "typescript": "^4.6.4"
   }
 }

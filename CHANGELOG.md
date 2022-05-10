@@ -1,3 +1,8 @@
+## [1.0.0](https://github.com/foca-js/foca-axios/compare/v0.4.0...v1.0.0)&nbsp;&nbsp;(2022-05-10)
+
+- [breaking] 现在只支持axios@0.27+
+- 新的打包方式以更好地兼容 ESM
+
 ## [0.4.0](https://github.com/foca-js/foca-axios/compare/v0.3.0...v0.4.0)&nbsp;&nbsp;(2021-12-16)
 
 - 新增方法 clearCache()

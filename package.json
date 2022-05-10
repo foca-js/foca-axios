@@ -1,6 +1,6 @@
 {
   "name": "foca-axios",
-  "version": "0.4.0",
+  "version": "1.0.0",
   "repository": "git@github.com:foca-js/foca-axios.git",
   "contributors": [
     "罪 <fanwenhua1990@gmail.com> (https://github.com/geekact)"
@@ -44,6 +44,7 @@
   "devDependencies": {
     "@commitlint/cli": "^16.2.4",
     "@commitlint/config-conventional": "^16.2.4",
+    "@swc/core": "^1.2.181",
     "@types/clone": "^2.1.1",
     "@types/jest": "^27.5.0",
     "axios": "^0.27.2",

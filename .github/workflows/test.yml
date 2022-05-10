@@ -16,7 +16,7 @@ jobs:
       matrix:
         node-version: [14.x, 16.x, 18.x]
         ts-version: [4.4.x, 4.5.x, 4.6.x]
-        axios-version: [0.24.x, 0.25.x, 0.26.x, 0.27.x]
+        axios-version: [0.27.x]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -34,7 +34,7 @@ jobs:
     strategy:
       matrix:
         node-version: [14.x, 16.x, 18.x]
-        axios-version: [0.24.x, 0.25.x, 0.26.x, 0.27.x]
+        axios-version: [0.27.x]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2

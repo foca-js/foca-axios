@@ -36,7 +36,7 @@
     ]
   },
   "peerDependencies": {
-    "axios": "^0.23.0"
+    "axios": "^0.27.0"
   },
   "dependencies": {
     "clone": "^2.1.2"

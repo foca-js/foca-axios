@@ -1,5 +1,4 @@
 import axios, { AxiosError, AxiosResponse, Method } from 'axios';
-import createError from 'axios/lib/core/createError';
 import clone from 'clone';
 import { cloneResponse } from '../libs/cloneResponse';
 import { FocaRequestConfig } from '../enhancer';
@@ -95,10 +94,10 @@ export class ThrottleSlot {
           return Promise.reject(
             axios.isCancel(err)
               ? err
-              : createError(
+              : new AxiosError(
                   err.message,
-                  config,
                   err.code,
+                  config,
                   err.request,
                   err.response ? cloneResponse(err.response, config) : void 0,
                 ),

@@ -1,6 +1,4 @@
-import { AxiosError } from 'axios';
-import Cancel from 'axios/lib/cancel/Cancel';
-import createError from 'axios/lib/core/createError';
+import { AxiosError, CanceledError } from 'axios';
 import { FocaRequestConfig, RetrySlot } from '../src';
 
 test('Common request will not retry', async () => {
@@ -9,7 +7,7 @@ test('Common request will not retry', async () => {
     url: '/users',
     method: 'get',
   };
-  const error = createError('', config, null, null, undefined);
+  const error = new AxiosError('', void 0, config, null, undefined);
 
   await expect(retry.validate(error, config, 1)).resolves.toBeFalsy();
 });
@@ -20,7 +18,7 @@ test('Request can retry', async () => {
     url: '/users',
     method: 'get',
   };
-  const error = createError('', config, null, null, undefined);
+  const error = new AxiosError('', void 0, config, null, undefined);
 
   await expect(retry.validate(error, config, 1)).resolves.toBeTruthy();
 });
@@ -34,7 +32,7 @@ test('Can set max retry times', async () => {
     url: '/users',
     method: 'get',
   };
-  const error = createError('', config, null, null, undefined);
+  const error = new AxiosError('', void 0, config, null, undefined);
 
   await expect(retry.validate(error, config, 1)).resolves.toBeTruthy();
   await expect(retry.validate(error, config, 2)).resolves.toBeTruthy();
@@ -51,7 +49,7 @@ test('The aborted request should not retry', async () => {
   };
 
   await expect(
-    retry.validate(new Cancel('') as AxiosError, config, 1),
+    retry.validate(new CanceledError(''), config, 1),
   ).resolves.toBeFalsy();
 });
 
@@ -65,10 +63,10 @@ test('Should match http status', async () => {
     url: '/users',
     method: 'get',
   };
-  const error = createError(
+  const error = new AxiosError(
     '',
+    void 0,
     config,
-    null,
     {},
     {
       status: 600,

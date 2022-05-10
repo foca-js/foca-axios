@@ -10,25 +10,41 @@ on:
     branches:
 
 jobs:
-  test:
+  type-checking:
     if: "!contains(toJson(github.event.commits), '[skip ci]')"
     strategy:
       matrix:
-        node-version: [12.x, 14.x, 16.x]
-        ts-version: [4.4.x, 4.5.x]
-        axios-version: ['0.24']
-
+        node-version: [14.x, 16.x, 18.x]
+        ts-version: [4.4.x, 4.5.x, 4.6.x]
+        axios-version: [0.24.x, 0.25.x, 0.26.x, 0.27.x]
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v2
-      - name: Use Node.js ${{ matrix.node-version }} & Typescript ${{ matrix.ts-version }}
+      - name: Use Node.js ${{ matrix.node-version }} & Typescript ${{ matrix.ts-version }} & Axios ${{ matrix.axios-version }}
         uses: actions/setup-node@v2
         with:
           node-version: ${{ matrix.node-version }}
       - run: |
           yarn install
           yarn add typescript@${{ matrix.ts-version }} axios@${{ matrix.axios-version }} --dev
+      - run: yarn tsc
+
+  test:
+    if: "!contains(toJson(github.event.commits), '[skip ci]')"
+    strategy:
+      matrix:
+        node-version: [14.x, 16.x, 18.x]
+        axios-version: [0.24.x, 0.25.x, 0.26.x, 0.27.x]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Use Node.js ${{ matrix.node-version }} & Axios ${{ matrix.axios-version }}
+        uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node-version }}
+      - run: |
+          yarn install
+          yarn add axios@${{ matrix.axios-version }} --dev
       - run: yarn test
       - name: Upload Coverage
         uses: actions/upload-artifact@v2
@@ -36,6 +52,9 @@ jobs:
         with:
           name: coverage
           path: coverage
+          if-no-files-found: error
+          retention-days: 1
+
   coverage:
     if: github.ref == 'refs/heads/master'
     needs: test
@@ -47,4 +66,4 @@ jobs:
         with:
           name: coverage
           path: coverage
-      - uses: codecov/codecov-action@v1
+      - uses: codecov/codecov-action@v2

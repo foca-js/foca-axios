@@ -1,3 +1,7 @@
+## [1.0.1](https://github.com/foca-js/foca-axios/compare/v1.0.0...v1.0.1)&nbsp;&nbsp;(2022-05-13)
+
+- 使用`.js`文件以适配旧的打包工具
+
 ## [1.0.0](https://github.com/foca-js/foca-axios/compare/v0.4.0...v1.0.0)&nbsp;&nbsp;(2022-05-10)
 
 - [breaking] 现在只支持axios@0.27+

@@ -7,18 +7,18 @@
   ],
   "license": "MIT",
   "main": "dist/index.js",
-  "module": "dist/index.mjs",
+  "module": "dist/esm/index.js",
   "types": "dist/index.d.ts",
   "sideEffects": false,
   "scripts": {
     "test": "jest",
-    "prepublishOnly": "tsup",
+    "prepublishOnly": "tsup && cp dist/esm/index.js dist/esm/index.mjs && cp dist/esm/index.js.map dist/esm/index.mjs.map",
     "prepare": "husky install"
   },
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/index.mjs",
+      "import": "./dist/esm/index.mjs",
       "require": "./dist/index.js"
     }
   },

@@ -1,5 +1,5 @@
 import clone from 'clone';
-import { AxiosResponse } from 'axios';
+import type { AxiosResponse } from 'axios';
 import { FocaRequestConfig } from '..';
 
 /**

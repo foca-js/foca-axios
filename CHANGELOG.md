@@ -1,3 +1,7 @@
+## [1.0.2](https://github.com/foca-js/foca-axios/compare/v1.0.1...v1.0.2)&nbsp;&nbsp;(2022-05-16)
+
+- axios 不支持 esm 格式
+
 ## [1.0.1](https://github.com/foca-js/foca-axios/compare/v1.0.0...v1.0.1)&nbsp;&nbsp;(2022-05-13)
 
 - 使用`.js`文件以适配旧的打包工具

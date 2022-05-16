@@ -1,4 +1,5 @@
-import { Axios, AxiosInstance, AxiosResponse } from 'axios';
+import axios from 'axios';
+import type { AxiosInstance, AxiosResponse } from 'axios';
 import { FocaRequestConfig } from '../enhancer';
 
 export interface FocaAxiosPromise<T = any, D = any> extends Promise<T> {
@@ -12,9 +13,9 @@ export interface FocaAxiosPromise<T = any, D = any> extends Promise<T> {
 
 export const overrideRequest = (instance: AxiosInstance) => {
   // 真实的context = new Axios()，但是未暴露出来，导致request方法重写无效。
-  Object.keys(Axios.prototype).forEach((key) => {
+  Object.keys(axios.Axios.prototype).forEach((key) => {
     // @ts-expect-error
-    instance[key] = Axios.prototype[key].bind(instance);
+    instance[key] = axios.Axios.prototype[key].bind(instance);
   });
 
   const originalRequest = instance.request;

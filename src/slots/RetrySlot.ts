@@ -1,4 +1,5 @@
-import axios, { AxiosError, AxiosResponse, Method } from 'axios';
+import axios from 'axios';
+import type { AxiosError, AxiosResponse, Method } from 'axios';
 import { FocaRequestConfig } from '../enhancer';
 import { isForceEnable } from '../libs/isForceEnable';
 import { mergeSlotOptions } from '../libs/mergeSlotOptions';

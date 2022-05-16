@@ -1,4 +1,4 @@
-import { AxiosResponse, Method } from 'axios';
+import type { AxiosResponse, Method } from 'axios';
 import clone from 'clone';
 import { cloneResponse } from '../libs/cloneResponse';
 import { FocaRequestConfig } from '../enhancer';

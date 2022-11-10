@@ -1,3 +1,7 @@
+## [2.0.0](https://github.com/foca-js/foca-axios/compare/v1.0.2...v2.0.0)&nbsp;&nbsp;(2022-11-10)
+
+- 升级 axios 到 1.1 版本
+
 ## [1.0.2](https://github.com/foca-js/foca-axios/compare/v1.0.1...v1.0.2)&nbsp;&nbsp;(2022-05-16)
 
 - axios 不支持 esm 格式

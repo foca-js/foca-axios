@@ -1,7 +1,6 @@
-import axios from 'axios';
-import type { AxiosError, AxiosAdapter, AxiosResponse } from 'axios';
-import { FocaRequestConfig } from '../enhancer';
-import { TransformResponseHandler } from '../libs/preventTransform';
+import { AxiosError, type AxiosAdapter, type AxiosResponse } from 'axios';
+import type { FocaRequestConfig } from '../enhancer';
+import type { TransformResponseHandler } from '../libs/preventTransform';
 
 export class RequestSlot {
   constructor(
@@ -33,8 +32,7 @@ export class RequestSlot {
 
             if (!config.validateStatus(realHttpStatus)) {
               return Promise.reject(
-                // @ts-expect-error
-                new axios.AxiosError(
+                new AxiosError(
                   'Request failed with status code ' + realHttpStatus,
                   void 0,
                   response.config,

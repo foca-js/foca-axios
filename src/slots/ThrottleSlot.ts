@@ -1,8 +1,12 @@
-import axios from 'axios';
-import type { AxiosError, AxiosResponse, Method } from 'axios';
+import axios, {
+  AxiosError,
+  type AxiosResponse,
+  type Cancel,
+  type Method,
+} from 'axios';
 import clone from 'clone';
 import { cloneResponse } from '../libs/cloneResponse';
-import { FocaRequestConfig } from '../enhancer';
+import type { FocaRequestConfig } from '../enhancer';
 import { mergeSlotOptions } from '../libs/mergeSlotOptions';
 import { isForceEnable } from '../libs/isForceEnable';
 
@@ -91,12 +95,11 @@ export class ThrottleSlot {
     if (thread) {
       return thread
         .then((response) => cloneResponse(response, config))
-        .catch((err: AxiosError) => {
+        .catch((err: AxiosError | Cancel) => {
           return Promise.reject(
             axios.isCancel(err)
               ? err
-              : // @ts-expect-error
-                new axios.AxiosError(
+              : new AxiosError(
                   err.message,
                   err.code,
                   config,

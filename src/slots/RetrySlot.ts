@@ -1,6 +1,10 @@
-import axios from 'axios';
-import type { AxiosError, AxiosResponse, Method } from 'axios';
-import { FocaRequestConfig } from '../enhancer';
+import axios, {
+  AxiosError,
+  type AxiosResponse,
+  type Cancel,
+  type Method,
+} from 'axios';
+import type { FocaRequestConfig } from '../enhancer';
 import { isForceEnable } from '../libs/isForceEnable';
 import { mergeSlotOptions } from '../libs/mergeSlotOptions';
 
@@ -56,7 +60,7 @@ export class RetrySlot {
   constructor(protected readonly options?: boolean | RetryOptions) {}
 
   validate(
-    err: AxiosError,
+    err: AxiosError | Cancel,
     config: FocaRequestConfig,
     currentTimes: number,
   ): Promise<boolean> {

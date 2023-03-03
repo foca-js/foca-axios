@@ -1,3 +1,7 @@
+## [3.0.1](https://github.com/foca-js/foca-axios/compare/v3.0.0...v3.0.1)&nbsp;&nbsp;(2023-03-03)
+
+- 导出 axios default 模块
+
 ## [3.0.0](https://github.com/foca-js/foca-axios/compare/v2.0.0...v3.0.0)&nbsp;&nbsp;(2023-03-03)
 
 - 内置 axios 并限定版本号

@@ -1,23 +1,22 @@
-import type { AxiosResponse, Method } from 'axios';
+import type { AxiosRequestConfig, AxiosResponse, Method } from 'axios';
 import clone from 'clone';
 import { cloneResponse } from '../libs/cloneResponse';
-import { FocaRequestConfig } from '../enhancer';
 import { mergeSlotOptions } from '../libs/mergeSlotOptions';
 import { isForceEnable } from '../libs/isForceEnable';
 
 export interface CacheOptions {
   /**
-   * 是否允许使用缓存。
+   * 是否允许使用缓存。默认：`true`
    */
   enable?: boolean;
   /**
-   * 缓存存活时间(ms)，默认：10 * 60 *1000（10分钟）。
+   * 缓存存活时间(ms)，默认：`10 * 60 *1000`（10分钟）。
    *
    * @see CacheSlot.defaultMaxAge
    */
   maxAge?: number;
   /**
-   * 允许缓存的请求方法，默认：['get']
+   * 允许缓存的请求方法，默认：`['get']`
    * @see CacheSlot.defaultAllowedMethods
    */
   allowedMethods?: `${Lowercase<Method>}`[];
@@ -29,7 +28,7 @@ export interface CacheOptions {
   /**
    * 对于过滤后初步允许缓存的请求，执行该方法再次确认。
    */
-  validate?(config: FocaRequestConfig): boolean;
+  validate?(config: AxiosRequestConfig): boolean;
 }
 
 type CacheMap = Partial<{
@@ -41,7 +40,7 @@ type CacheMap = Partial<{
 
 type FormatKeys = typeof CacheSlot['formatKeys'][number];
 
-export type CacheFormatConfig = Required<Pick<FocaRequestConfig, FormatKeys>>;
+export type CacheFormatConfig = Required<Pick<AxiosRequestConfig, FormatKeys>>;
 
 export class CacheSlot {
   static defaultMaxAge = 10 * 60 * 1000;
@@ -64,8 +63,8 @@ export class CacheSlot {
   constructor(protected readonly options?: boolean | CacheOptions) {}
 
   hit(
-    config: FocaRequestConfig,
-    newCache: (config: FocaRequestConfig) => Promise<AxiosResponse>,
+    config: AxiosRequestConfig,
+    newCache: (config: AxiosRequestConfig) => Promise<AxiosResponse>,
   ): Promise<AxiosResponse> {
     const options = mergeSlotOptions(this.options, config.cache);
     const { allowedMethods = CacheSlot.defaultAllowedMethods, validate } =
@@ -125,11 +124,11 @@ export class CacheSlot {
   }
 
   protected static getFormatConfig(
-    config: FocaRequestConfig,
+    config: AxiosRequestConfig,
   ): CacheFormatConfig {
     return this.formatKeys.reduce((carry, key) => {
       carry[key] = config[key];
       return carry;
-    }, <Pick<FocaRequestConfig, FormatKeys>>{}) as CacheFormatConfig;
+    }, <Pick<AxiosRequestConfig, FormatKeys>>{}) as CacheFormatConfig;
   }
 }

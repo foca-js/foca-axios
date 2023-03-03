@@ -1,22 +1,22 @@
 import axios, {
   AxiosError,
+  AxiosRequestConfig,
   type AxiosResponse,
   type Cancel,
   type Method,
 } from 'axios';
 import clone from 'clone';
 import { cloneResponse } from '../libs/cloneResponse';
-import type { FocaRequestConfig } from '../enhancer';
 import { mergeSlotOptions } from '../libs/mergeSlotOptions';
 import { isForceEnable } from '../libs/isForceEnable';
 
 export interface ThrottleOptions {
   /**
-   * 是否允许共享，默认：true
+   * 是否允许共享，默认：`true`
    */
   enable?: boolean;
   /**
-   * 允许共享的方法，默认：['get', 'head', 'put', 'patch', 'delete']
+   * 允许共享的方法，默认：`['get', 'head', 'put', 'patch', 'delete']`
    * @see ThrottleSlot.defaultAllowedMethods
    */
   allowedMethods?: `${Lowercase<Method>}`[];
@@ -29,13 +29,13 @@ export interface ThrottleOptions {
   /**
    * 对于过滤后初步允许共享的请求，执行该方法再次确认。
    */
-  validate?(config: FocaRequestConfig): boolean;
+  validate?(config: AxiosRequestConfig): boolean;
 }
 
 type FormatKeys = typeof ThrottleSlot['formatKeys'][number];
 
 export type ThrottleFormatConfig = Required<
-  Pick<FocaRequestConfig, FormatKeys>
+  Pick<AxiosRequestConfig, FormatKeys>
 >;
 
 export class ThrottleSlot {
@@ -63,8 +63,8 @@ export class ThrottleSlot {
   constructor(protected readonly options?: boolean | ThrottleOptions) {}
 
   hit(
-    config: FocaRequestConfig,
-    newThread: (config: FocaRequestConfig) => Promise<AxiosResponse>,
+    config: AxiosRequestConfig,
+    newThread: (config: AxiosRequestConfig) => Promise<AxiosResponse>,
   ): Promise<AxiosResponse> {
     const options = mergeSlotOptions(this.options, config.throttle);
     const {
@@ -127,11 +127,11 @@ export class ThrottleSlot {
   }
 
   protected static getFormatConfig(
-    config: FocaRequestConfig,
+    config: AxiosRequestConfig,
   ): ThrottleFormatConfig {
     return this.formatKeys.reduce((carry, key) => {
       carry[key] = config[key];
       return carry;
-    }, <Pick<FocaRequestConfig, FormatKeys>>{}) as ThrottleFormatConfig;
+    }, <Pick<AxiosRequestConfig, FormatKeys>>{}) as ThrottleFormatConfig;
   }
 }

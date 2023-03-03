@@ -1,10 +1,15 @@
 import axios, { AxiosResponse } from 'axios';
-import { enhance } from '../src';
 import MockAdapter from 'axios-mock-adapter';
+import { enhance } from '../src';
 
-const instance = axios.create();
-const mock = new MockAdapter(instance);
-const http = enhance(instance);
+let mock: MockAdapter;
+
+const http = axios.create({
+  enhance(instance) {
+    mock = new MockAdapter(instance);
+    return enhance(instance);
+  },
+});
 
 test('Get unwrap api', async () => {
   const data = [
@@ -35,7 +40,7 @@ test('Get api with original axios response', async () => {
 
   mock.onGet('/users').replyOnce(200, data);
 
-  const result = await http.get<typeof data>('/users').toRawResponse();
+  const result = await http.get<typeof data>('/users').toRaw();
 
   expect(result).toMatchObject<Partial<AxiosResponse<typeof data>>>({
     data: data,

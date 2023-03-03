@@ -18,16 +18,14 @@
 # 安装
 
 ```bash
-yarn add axios foca-axios
+yarn add foca-axios
 ```
 
 # 使用
 
 ```typescript
 // File: http.ts
-import axios from 'axios';
-import { enhance } from 'foca-axios';
+import { axios } from 'foca-axios';
 
-const instance = axios.create();
-export const http = enhance(instance); // http === instance
+export const http = axios.create();
 ```

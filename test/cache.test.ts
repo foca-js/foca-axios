@@ -1,11 +1,10 @@
-import { CacheSlot } from '../src';
-import { FocaRequestConfig } from '../src';
+import { AxiosRequestConfig, CacheSlot } from '../src';
 import sleep from 'sleep-promise';
 import { resolveResponse } from './utils';
 
 test('Common request will not cache', async () => {
   const cache = new CacheSlot();
-  const config: FocaRequestConfig = {
+  const config: AxiosRequestConfig = {
     method: 'get',
     url: '/users',
   };
@@ -18,7 +17,7 @@ test('Common request will not cache', async () => {
 
 test('Same request can hit cache', async () => {
   const cache = new CacheSlot({});
-  const config: FocaRequestConfig = {
+  const config: AxiosRequestConfig = {
     method: 'get',
     url: '/users',
   };
@@ -33,7 +32,7 @@ test('Cache has expire time', async () => {
   const cache = new CacheSlot({
     maxAge: 200,
   });
-  const config: FocaRequestConfig = {
+  const config: AxiosRequestConfig = {
     method: 'get',
     url: '/users',
   };
@@ -52,11 +51,11 @@ test('Cache has expire time', async () => {
 
 test('Different request can not share the cache', async () => {
   const cache = new CacheSlot({});
-  const config1: FocaRequestConfig = {
+  const config1: AxiosRequestConfig = {
     method: 'get',
     url: '/users',
   };
-  const config2: FocaRequestConfig = {
+  const config2: AxiosRequestConfig = {
     ...config1,
     url: '/admins',
   };
@@ -74,12 +73,12 @@ test('Format the config to hit the cache', async () => {
     },
   });
 
-  const config1: FocaRequestConfig = {
+  const config1: AxiosRequestConfig = {
     method: 'get',
     url: '/users',
     params: {},
   };
-  const config2: FocaRequestConfig = {
+  const config2: AxiosRequestConfig = {
     ...config1,
     url: '/admins',
   };
@@ -92,7 +91,7 @@ test('Format the config to hit the cache', async () => {
 
 test('force enable cache', async () => {
   const cache = new CacheSlot();
-  const config: FocaRequestConfig = {
+  const config: AxiosRequestConfig = {
     method: 'get',
     url: '/users',
     cache: {},
@@ -106,12 +105,12 @@ test('force enable cache', async () => {
 
 test('config should not be shared', async () => {
   const cache = new CacheSlot({});
-  const config1: FocaRequestConfig = {
+  const config1: AxiosRequestConfig = {
     method: 'get',
     url: '/users',
     params: {},
   };
-  const config2: FocaRequestConfig = {
+  const config2: AxiosRequestConfig = {
     ...config1,
   };
 
@@ -131,7 +130,7 @@ test('config should not be shared', async () => {
 
 test('cache can be cleared', async () => {
   const cache = new CacheSlot({});
-  const config: FocaRequestConfig = {
+  const config: AxiosRequestConfig = {
     method: 'get',
     url: '/users',
   };
@@ -147,11 +146,11 @@ test('cache can be cleared', async () => {
 
 test('cache can be cleared with filter', async () => {
   const cache = new CacheSlot({});
-  const config1: FocaRequestConfig = {
+  const config1: AxiosRequestConfig = {
     method: 'get',
     url: '/users',
   };
-  const config2: FocaRequestConfig = {
+  const config2: AxiosRequestConfig = {
     method: 'get',
     url: '/users2',
   };

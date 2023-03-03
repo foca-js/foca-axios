@@ -1,3 +1,9 @@
+## [3.0.0](https://github.com/foca-js/foca-axios/compare/v2.0.0...v3.0.0)&nbsp;&nbsp;(2023-03-03)
+
+- 内置 axios 并限定版本号
+- 自动执行增强函数
+- 使用 `declare module 'axios'` 重定义 axios 部分类型
+
 ## [2.0.0](https://github.com/foca-js/foca-axios/compare/v1.0.2...v2.0.0)&nbsp;&nbsp;(2022-11-10)
 
 - 升级 axios 到 1.1 版本

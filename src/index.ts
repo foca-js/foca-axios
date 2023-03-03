@@ -7,3 +7,4 @@ export * from './libs/preventTransform';
 export * from './libs/mergeSlotOptions';
 export * from './libs/cloneResponse';
 export * from 'axios';
+export { default as axios } from 'axios';

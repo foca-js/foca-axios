@@ -1,6 +1,5 @@
 import clone from 'clone';
-import type { AxiosResponse } from 'axios';
-import { FocaRequestConfig } from '..';
+import type { AxiosRequestConfig, AxiosResponse } from 'axios';
 
 /**
  * request作为XMLHttpRequest被clone时会出错
@@ -8,7 +7,7 @@ import { FocaRequestConfig } from '..';
  */
 export const cloneResponse = (
   response: AxiosResponse,
-  config: FocaRequestConfig,
+  config: AxiosRequestConfig,
 ) => {
   const next = Object.assign({}, response);
 

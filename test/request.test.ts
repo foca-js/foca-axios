@@ -1,7 +1,11 @@
-import axios, { Axios, AxiosError, AxiosResponse } from 'axios';
+import axios, {
+  Axios,
+  AxiosError,
+  AxiosRequestConfig,
+  AxiosResponse,
+} from 'axios';
 import MockAdapter from 'axios-mock-adapter';
 import sleep from 'sleep-promise';
-import { FocaRequestConfig } from '../src';
 import { RequestSlot } from '../src/slots/RequestSlot';
 
 const onResolve = (response: AxiosResponse) => response;
@@ -23,7 +27,7 @@ test('Can request non-standart response', async () => {
     (response) => response.data.code,
   );
 
-  const config: FocaRequestConfig = {
+  const config: AxiosRequestConfig = {
     url: '/users',
     method: 'get',
     validateStatus: instance.defaults.validateStatus,
@@ -53,7 +57,7 @@ test('Loop request until succeed', async () => {
 
   const request = new RequestSlot(mock.adapter());
 
-  const config: FocaRequestConfig = {
+  const config: AxiosRequestConfig = {
     url: '/users',
     method: 'get',
     validateStatus: instance.defaults.validateStatus,

@@ -1,28 +1,31 @@
-import { AxiosError, type AxiosAdapter, type AxiosResponse } from 'axios';
-import type { FocaRequestConfig } from '../enhancer';
+import { AxiosError, type AxiosResponse, type AxiosRequestConfig } from 'axios';
 import type { TransformResponseHandler } from '../libs/preventTransform';
 
 export class RequestSlot {
   constructor(
-    protected readonly originalAdapter: AxiosAdapter,
+    protected readonly defaultAdapter: NonNullable<
+      AxiosRequestConfig['adapter']
+    >,
     protected readonly getHttpStatus?: (response: AxiosResponse) => number,
   ) {
-    if (!originalAdapter) {
+    if (!defaultAdapter) {
       throw new Error('axios default adapter is not found.');
     }
   }
 
   hit(
-    config: FocaRequestConfig,
+    config: AxiosRequestConfig,
     [onResolve, onReject]: TransformResponseHandler,
     shouldLoop: (
       err: AxiosError,
-      config: FocaRequestConfig,
+      config: AxiosRequestConfig,
       currentTimes: number,
     ) => Promise<boolean>,
   ): Promise<any> {
+    // FIXME: what if config includes custom adapter?
+    const adapter = this.defaultAdapter;
     const loop = (currentTimes: number): Promise<any> => {
-      return this.originalAdapter(config)
+      return adapter(config)
         .then(onResolve, onReject)
         .then((response: AxiosResponse) => {
           const getHttpStatus = config.getHttpStatus || this.getHttpStatus;

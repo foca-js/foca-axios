@@ -1,8 +1,7 @@
-import { AxiosResponse } from 'axios';
-import { FocaRequestConfig } from '../src';
+import { AxiosRequestConfig, AxiosResponse } from 'axios';
 
 export const resolveResponse = (
-  config: FocaRequestConfig,
+  config: AxiosRequestConfig,
 ): Promise<AxiosResponse> =>
   Promise.resolve({
     data: {

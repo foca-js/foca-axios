@@ -1,13 +1,16 @@
-import { Axios, type AxiosInstance, type AxiosResponse } from 'axios';
-import type { FocaRequestConfig } from '../enhancer';
+import {
+  Axios,
+  AxiosRequestConfig,
+  type AxiosInstance,
+  type AxiosResponse,
+} from 'axios';
 
 export interface FocaAxiosPromise<T = any, D = any> extends Promise<T> {
   /**
    * 返回axios原始的response格式
-   *
    * @see AxiosResponse
    */
-  toRawResponse: () => Promise<AxiosResponse<T, D>>;
+  toRaw: () => Promise<AxiosResponse<T, D>>;
 }
 
 export const overrideRequest = (instance: AxiosInstance) => {
@@ -19,14 +22,14 @@ export const overrideRequest = (instance: AxiosInstance) => {
 
   const originalRequest = instance.request;
 
-  instance.request = function focaRequest(config: FocaRequestConfig) {
+  instance.request = function focaRequest(config?: AxiosRequestConfig) {
     let shouldUnwrap: boolean = true;
 
-    const promise = originalRequest(config).then((response) => {
-      return shouldUnwrap ? response.data : response;
+    const promise = originalRequest<any>(config).then((response) => {
+      return shouldUnwrap ? (response as AxiosResponse).data : response;
     }) as FocaAxiosPromise;
 
-    promise.toRawResponse = function toRawResponse() {
+    promise.toRaw = function toRawResponse() {
       shouldUnwrap = false;
       return promise;
     };

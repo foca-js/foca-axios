@@ -1,43 +1,43 @@
 import axios, {
   AxiosError,
+  AxiosRequestConfig,
   type AxiosResponse,
   type Cancel,
   type Method,
 } from 'axios';
-import type { FocaRequestConfig } from '../enhancer';
 import { isForceEnable } from '../libs/isForceEnable';
 import { mergeSlotOptions } from '../libs/mergeSlotOptions';
 
 export interface RetryOptions {
   /**
-   * 失败的请求是否允许重试，默认：true
+   * 失败的请求是否允许重试，默认：`true`
    */
   enable?: boolean;
   /**
-   * 最大重试次数，默认：3次
+   * 最大重试次数，默认：`3`次
    * @see RetrySlot.defaultMaxTimes
    */
   maxTimes?: number;
   /**
-   * 每次重试间隔，默认：100ms
+   * 每次重试间隔，默认：`100`ms
    * @see setTimeout()
    * @see RetrySlot.defaultDelay
    */
   delay?: number;
   /**
-   * 允许重试的请求方法，默认：['get', 'head', 'put', 'patch', 'delete']
+   * 允许重试的请求方法，默认：`['get', 'head', 'put', 'patch', 'delete']`
    * @see RetrySlot.defaultAllowedMethods
    */
   allowedMethods?: `${Lowercase<Method>}`[];
   /**
-   * 允许重试的http状态码区间，默认：[[100, 199], 429, [500, 599]]
+   * 允许重试的http状态码区间，默认：`[[100, 199], 429, [500, 599]]`
    * @see RetrySlot.defaultAllowedHttpStatus
    */
   allowedHttpStatus?: (number | [number, number])[];
   /**
    * 对于过滤后初步允许重试的请求，执行该方法再次确认。
    */
-  validate?(config: FocaRequestConfig): boolean;
+  validate?(config: AxiosRequestConfig): boolean;
 }
 
 export class RetrySlot {
@@ -61,7 +61,7 @@ export class RetrySlot {
 
   validate(
     err: AxiosError | Cancel,
-    config: FocaRequestConfig,
+    config: AxiosRequestConfig,
     currentTimes: number,
   ): Promise<boolean> {
     const options = mergeSlotOptions(this.options, config.retry);

@@ -1,9 +1,9 @@
-import { FocaRequestConfig, ThrottleSlot } from '../src';
+import { AxiosRequestConfig, ThrottleSlot } from '../src';
 import { rejectRespone, resolveResponse } from './utils';
 
 test('Common request will not throttle', async () => {
   const throttle = new ThrottleSlot();
-  const config: FocaRequestConfig = {
+  const config: AxiosRequestConfig = {
     method: 'get',
     url: '/users',
   };
@@ -17,7 +17,7 @@ test('Common request will not throttle', async () => {
 
 test('Same request can hit throttle', async () => {
   const throttle = new ThrottleSlot({});
-  const config: FocaRequestConfig = {
+  const config: AxiosRequestConfig = {
     method: 'get',
     url: '/users',
     params: {},
@@ -32,11 +32,11 @@ test('Same request can hit throttle', async () => {
 
 test('Different request can not throttle to each other', async () => {
   const throttle = new ThrottleSlot({});
-  const config1: FocaRequestConfig = {
+  const config1: AxiosRequestConfig = {
     method: 'get',
     url: '/users',
   };
-  const config2: FocaRequestConfig = {
+  const config2: AxiosRequestConfig = {
     ...config1,
     url: '/admins',
   };
@@ -55,12 +55,12 @@ test('Format the config to hit the throttle thread', async () => {
       return config;
     },
   });
-  const config1: FocaRequestConfig = {
+  const config1: AxiosRequestConfig = {
     method: 'get',
     url: '/users',
     params: {},
   };
-  const config2: FocaRequestConfig = {
+  const config2: AxiosRequestConfig = {
     ...config1,
     url: '/admins',
   };
@@ -80,16 +80,16 @@ test('Force to enable throttle and ignore the allowed methods', async () => {
       return config;
     },
   });
-  const config1: FocaRequestConfig = {
+  const config1: AxiosRequestConfig = {
     method: 'get',
     url: '/users',
     params: {},
   };
-  const config2: FocaRequestConfig = {
+  const config2: AxiosRequestConfig = {
     ...config1,
     method: 'post',
   };
-  const config3: FocaRequestConfig = {
+  const config3: AxiosRequestConfig = {
     ...config2,
     throttle: {
       allowedMethods: ['post'],
@@ -107,7 +107,7 @@ test('Force to enable throttle and ignore the allowed methods', async () => {
 
 test('Remove throttle thread after promise resolved', async () => {
   const throttle = new ThrottleSlot({});
-  const config: FocaRequestConfig = {
+  const config: AxiosRequestConfig = {
     method: 'get',
     url: '/users',
     params: {},
@@ -121,7 +121,7 @@ test('Remove throttle thread after promise resolved', async () => {
 
 test('Remove throttle thread after promise rejected', async () => {
   const throttle = new ThrottleSlot({});
-  const config: FocaRequestConfig = {
+  const config: AxiosRequestConfig = {
     method: 'get',
     url: '/users',
     params: {},
@@ -139,12 +139,12 @@ test('Remove throttle thread after promise rejected', async () => {
 
 test('config should not be shared', async () => {
   const throttle = new ThrottleSlot({});
-  const config1: FocaRequestConfig = {
+  const config1: AxiosRequestConfig = {
     method: 'get',
     url: '/users',
     params: {},
   };
-  const config2: FocaRequestConfig = {
+  const config2: AxiosRequestConfig = {
     ...config1,
   };
 

@@ -6,3 +6,4 @@ export * from './libs/overrideRequest';
 export * from './libs/preventTransform';
 export * from './libs/mergeSlotOptions';
 export * from './libs/cloneResponse';
+export * from 'axios';

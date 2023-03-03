@@ -16,54 +16,39 @@ jobs:
       matrix:
         node-version: [14.x, 16.x, 18.x]
         ts-version: [4.6.x, 4.7.x, 4.8.x, 4.9.x]
-        axios-version: [1.2.x]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - name: Use Node.js ${{ matrix.node-version }} & Typescript ${{ matrix.ts-version }} & Axios ${{ matrix.axios-version }}
-        uses: actions/setup-node@v2
+      - uses: actions/checkout@v3
+      - uses: pnpm/action-setup@v2
+      - name: Use Node.js ${{ matrix.node-version }} & Typescript ${{ matrix.ts-version }}
+        uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
+          cache: 'pnpm'
       - run: |
-          yarn install
-          yarn add typescript@${{ matrix.ts-version }} axios@${{ matrix.axios-version }} --dev
-      - run: yarn tsc
+          pnpm install
+          pnpm add typescript@${{ matrix.ts-version }} --dev
+      - run: pnpm tsc
 
   test:
     if: "!contains(toJson(github.event.commits), '[skip ci]')"
     strategy:
       matrix:
         node-version: [14.x, 16.x, 18.x]
-        axios-version: [1.2.x]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - name: Use Node.js ${{ matrix.node-version }} & Axios ${{ matrix.axios-version }}
-        uses: actions/setup-node@v2
+      - uses: actions/checkout@v3
+      - uses: pnpm/action-setup@v2
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
-      - run: |
-          yarn install
-          yarn add axios@${{ matrix.axios-version }} --dev
-      - run: yarn test
+          cache: 'pnpm'
+      - run: pnpm install
+      - run: pnpm test
       - name: Upload Coverage
-        uses: actions/upload-artifact@v2
-        if: github.ref == 'refs/heads/master'
+        if: github.ref == 'refs/heads/master' && strategy.job-index == 0
+        uses: codecov/codecov-action@v3
         with:
-          name: coverage
-          path: coverage
-          if-no-files-found: error
-          retention-days: 1
-
-  coverage:
-    if: github.ref == 'refs/heads/master'
-    needs: test
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - name: Download Coverage
-        uses: actions/download-artifact@v2
-        with:
-          name: coverage
-          path: coverage
-      - uses: codecov/codecov-action@v2
+          verbose: true
+          fail_ci_if_error: true

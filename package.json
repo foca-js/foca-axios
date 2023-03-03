@@ -19,6 +19,7 @@
     "node": "18.14.2",
     "pnpm": "7.28.0"
   },
+  "packageManager": "pnpm@7.28.0",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",

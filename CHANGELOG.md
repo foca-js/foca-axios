@@ -1,3 +1,7 @@
+## [3.1.0](https://github.com/foca-js/foca-axios/compare/v3.0.2...v3.1.0)&nbsp;&nbsp;(2023-03-20)
+
+- 所有特性默认都是开启的
+
 ## [3.0.2](https://github.com/foca-js/foca-axios/compare/v3.0.0...v3.0.2)&nbsp;&nbsp;(2023-03-03)
 
 - 导出 axios default 模块

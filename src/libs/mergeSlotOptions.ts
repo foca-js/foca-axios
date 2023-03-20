@@ -7,7 +7,7 @@ export const mergeSlotOptions = <T extends BaseConfig>(
   localOptions?: boolean | T,
 ): T => {
   if (!globalOptions && !localOptions) {
-    return <T>{ enable: false };
+    return <T>{ enable: true };
   }
 
   const globalOpts: BaseConfig | undefined =

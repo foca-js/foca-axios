@@ -1,22 +1,8 @@
 import { AxiosRequestConfig, ThrottleSlot } from '../src';
 import { rejectRespone, resolveResponse } from './utils';
 
-test('Common request will not throttle', async () => {
-  const throttle = new ThrottleSlot();
-  const config: AxiosRequestConfig = {
-    method: 'get',
-    url: '/users',
-  };
-
-  const [a, b] = await Promise.all([
-    throttle.hit(config, resolveResponse),
-    throttle.hit(config, resolveResponse),
-  ]);
-  expect(a.data).not.toEqual(b.data);
-});
-
 test('Same request can hit throttle', async () => {
-  const throttle = new ThrottleSlot({});
+  const throttle = new ThrottleSlot();
   const config: AxiosRequestConfig = {
     method: 'get',
     url: '/users',
@@ -31,7 +17,7 @@ test('Same request can hit throttle', async () => {
 });
 
 test('Different request can not throttle to each other', async () => {
-  const throttle = new ThrottleSlot({});
+  const throttle = new ThrottleSlot();
   const config1: AxiosRequestConfig = {
     method: 'get',
     url: '/users',

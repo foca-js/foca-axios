@@ -2,7 +2,7 @@ import { mergeSlotOptions } from '../src';
 
 test('Input undefined', () => {
   expect(mergeSlotOptions(undefined, undefined)).toStrictEqual({
-    enable: false,
+    enable: true,
   });
 
   expect(mergeSlotOptions(undefined, true)).toStrictEqual({

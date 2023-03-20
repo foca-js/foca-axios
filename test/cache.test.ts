@@ -2,21 +2,8 @@ import { AxiosRequestConfig, CacheSlot } from '../src';
 import sleep from 'sleep-promise';
 import { resolveResponse } from './utils';
 
-test('Common request will not cache', async () => {
-  const cache = new CacheSlot();
-  const config: AxiosRequestConfig = {
-    method: 'get',
-    url: '/users',
-  };
-
-  const a = await cache.hit(config, resolveResponse);
-  const b = await cache.hit(config, resolveResponse);
-
-  expect(a.data).not.toEqual(b.data);
-});
-
 test('Same request can hit cache', async () => {
-  const cache = new CacheSlot({});
+  const cache = new CacheSlot();
   const config: AxiosRequestConfig = {
     method: 'get',
     url: '/users',
@@ -50,7 +37,7 @@ test('Cache has expire time', async () => {
 });
 
 test('Different request can not share the cache', async () => {
-  const cache = new CacheSlot({});
+  const cache = new CacheSlot();
   const config1: AxiosRequestConfig = {
     method: 'get',
     url: '/users',
@@ -104,7 +91,7 @@ test('force enable cache', async () => {
 });
 
 test('config should not be shared', async () => {
-  const cache = new CacheSlot({});
+  const cache = new CacheSlot();
   const config1: AxiosRequestConfig = {
     method: 'get',
     url: '/users',
@@ -129,7 +116,7 @@ test('config should not be shared', async () => {
 });
 
 test('cache can be cleared', async () => {
-  const cache = new CacheSlot({});
+  const cache = new CacheSlot();
   const config: AxiosRequestConfig = {
     method: 'get',
     url: '/users',
@@ -145,7 +132,7 @@ test('cache can be cleared', async () => {
 });
 
 test('cache can be cleared with filter', async () => {
-  const cache = new CacheSlot({});
+  const cache = new CacheSlot();
   const config1: AxiosRequestConfig = {
     method: 'get',
     url: '/users',

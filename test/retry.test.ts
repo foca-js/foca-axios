@@ -1,19 +1,8 @@
 import { AxiosError, CanceledError } from 'axios';
 import { AxiosRequestConfig, RetrySlot } from '../src';
 
-test('Common request will not retry', async () => {
-  const retry = new RetrySlot();
-  const config: AxiosRequestConfig = {
-    url: '/users',
-    method: 'get',
-  };
-  const error = new AxiosError('', void 0, config, null, undefined);
-
-  await expect(retry.validate(error, config, 1)).resolves.toBeFalsy();
-});
-
 test('Request can retry', async () => {
-  const retry = new RetrySlot({});
+  const retry = new RetrySlot();
   const config: AxiosRequestConfig = {
     url: '/users',
     method: 'get',
@@ -42,7 +31,7 @@ test('Can set max retry times', async () => {
 });
 
 test('The aborted request should not retry', async () => {
-  const retry = new RetrySlot({});
+  const retry = new RetrySlot();
   const config: AxiosRequestConfig = {
     url: '/users',
     method: 'get',
@@ -54,7 +43,7 @@ test('The aborted request should not retry', async () => {
 });
 
 test('Should match http status', async () => {
-  const retry = new RetrySlot({});
+  const retry = new RetrySlot();
   const retry1 = new RetrySlot({
     allowedHttpStatus: [[400, 500], 600],
   });

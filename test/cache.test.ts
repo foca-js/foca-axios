@@ -1,13 +1,29 @@
-import { AxiosRequestConfig, CacheSlot } from '../src';
+import { AxiosHeaders, InternalAxiosRequestConfig } from '../src';
 import sleep from 'sleep-promise';
 import { resolveResponse } from './utils';
 import { expect, test } from 'vitest';
+import { CacheSlot } from '../src/slots/cache-slot';
 
-test('Same request can hit cache', async () => {
+test('默认关闭', async () => {
   const cache = new CacheSlot();
-  const config: AxiosRequestConfig = {
+  const config: InternalAxiosRequestConfig = {
     method: 'get',
     url: '/users',
+    headers: new AxiosHeaders(),
+  };
+
+  const a = await cache.hit(config, resolveResponse);
+  const b = await cache.hit(config, resolveResponse);
+
+  expect(a.data).not.toEqual(b.data);
+});
+
+test('相同请求可以命中缓存', async () => {
+  const cache = new CacheSlot(true);
+  const config: InternalAxiosRequestConfig = {
+    method: 'get',
+    url: '/users',
+    headers: new AxiosHeaders(),
   };
 
   const a = await cache.hit(config, resolveResponse);
@@ -16,13 +32,14 @@ test('Same request can hit cache', async () => {
   expect(a.data).toEqual(b.data);
 });
 
-test('Cache has expire time', async () => {
+test('过期时间', async () => {
   const cache = new CacheSlot({
     maxAge: 200,
   });
-  const config: AxiosRequestConfig = {
+  const config: InternalAxiosRequestConfig = {
     method: 'get',
     url: '/users',
+    headers: new AxiosHeaders(),
   };
 
   const a = await cache.hit(config, resolveResponse);
@@ -37,13 +54,15 @@ test('Cache has expire time', async () => {
   expect(a.data).not.toEqual(d.data);
 });
 
-test('Different request can not share the cache', async () => {
-  const cache = new CacheSlot();
-  const config1: AxiosRequestConfig = {
+test('不同的请求无法共享缓存', async () => {
+  const cache = new CacheSlot(true);
+  const config1: InternalAxiosRequestConfig = {
     method: 'get',
     url: '/users',
+    headers: new AxiosHeaders(),
   };
-  const config2: AxiosRequestConfig = {
+
+  const config2: InternalAxiosRequestConfig = {
     ...config1,
     url: '/admins',
   };
@@ -53,7 +72,8 @@ test('Different request can not share the cache', async () => {
 
   expect(a.data).not.toEqual(b.data);
 });
-test('Format the config to hit the cache', async () => {
+
+test('设置新的key以共享缓存', async () => {
   const cache = new CacheSlot({
     format(config) {
       Reflect.deleteProperty(config, 'url');
@@ -61,12 +81,13 @@ test('Format the config to hit the cache', async () => {
     },
   });
 
-  const config1: AxiosRequestConfig = {
+  const config1: InternalAxiosRequestConfig = {
     method: 'get',
     url: '/users',
     params: {},
+    headers: new AxiosHeaders(),
   };
-  const config2: AxiosRequestConfig = {
+  const config2: InternalAxiosRequestConfig = {
     ...config1,
     url: '/admins',
   };
@@ -77,12 +98,13 @@ test('Format the config to hit the cache', async () => {
   expect(a.data).toEqual(b.data);
 });
 
-test('force enable cache', async () => {
-  const cache = new CacheSlot();
-  const config: AxiosRequestConfig = {
+test('单词请求中强制开启缓存', async () => {
+  const cache = new CacheSlot(false);
+  const config: InternalAxiosRequestConfig = {
     method: 'get',
     url: '/users',
     cache: {},
+    headers: new AxiosHeaders(),
   };
 
   const a = await cache.hit(config, resolveResponse);
@@ -91,14 +113,15 @@ test('force enable cache', async () => {
   expect(a.data).toEqual(b.data);
 });
 
-test('config should not be shared', async () => {
-  const cache = new CacheSlot();
-  const config1: AxiosRequestConfig = {
+test('config不会被共享', async () => {
+  const cache = new CacheSlot(true);
+  const config1: InternalAxiosRequestConfig = {
     method: 'get',
     url: '/users',
     params: {},
+    headers: new AxiosHeaders(),
   };
-  const config2: AxiosRequestConfig = {
+  const config2: InternalAxiosRequestConfig = {
     ...config1,
   };
 
@@ -116,11 +139,12 @@ test('config should not be shared', async () => {
   expect(a.data).toStrictEqual(b.data);
 });
 
-test('cache can be cleared', async () => {
-  const cache = new CacheSlot();
-  const config: AxiosRequestConfig = {
+test('清除缓存', async () => {
+  const cache = new CacheSlot(true);
+  const config: InternalAxiosRequestConfig = {
     method: 'get',
     url: '/users',
+    headers: new AxiosHeaders(),
   };
 
   const a = await cache.hit(config, resolveResponse);
@@ -132,15 +156,17 @@ test('cache can be cleared', async () => {
   expect(c.data).toEqual(b.data);
 });
 
-test('cache can be cleared with filter', async () => {
-  const cache = new CacheSlot();
-  const config1: AxiosRequestConfig = {
+test('清除指定缓存', async () => {
+  const cache = new CacheSlot(true);
+  const config1: InternalAxiosRequestConfig = {
     method: 'get',
     url: '/users',
+    headers: new AxiosHeaders(),
   };
-  const config2: AxiosRequestConfig = {
+  const config2: InternalAxiosRequestConfig = {
     method: 'get',
     url: '/users2',
+    headers: new AxiosHeaders(),
   };
 
   const a = await cache.hit(config1, resolveResponse);

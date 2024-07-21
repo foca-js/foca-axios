@@ -1,12 +1,16 @@
-import type { AxiosRequestConfig, AxiosResponse, Method } from 'axios';
+import type {
+  AxiosRequestConfig,
+  AxiosResponse,
+  InternalAxiosRequestConfig,
+  Method,
+} from 'axios';
 import clone from 'clone';
-import { cloneResponse } from '../libs/cloneResponse';
-import { mergeSlotOptions } from '../libs/mergeSlotOptions';
-import { isForceEnable } from '../libs/isForceEnable';
+import { cloneResponse } from '../libs/clone-response';
+import { mergeSlotOptions } from '../libs/merge-slot-options';
 
 export interface CacheOptions {
   /**
-   * 是否允许使用缓存。默认：`true`
+   * 是否允许使用缓存。默认：`false`
    */
   enable?: boolean;
   /**
@@ -26,7 +30,7 @@ export interface CacheOptions {
    */
   format?(formatConfig: CacheFormatConfig): object | string;
   /**
-   * 对于过滤后初步允许缓存的请求，执行该方法再次确认。
+   * 允许使用缓存的请求，执行该方法再次确认。
    */
   validate?(config: AxiosRequestConfig): boolean;
 }
@@ -51,20 +55,17 @@ export class CacheSlot {
 
   protected cacheMap: CacheMap = {};
 
-  constructor(protected readonly options?: boolean | CacheOptions) {}
+  constructor(protected readonly options: boolean | CacheOptions = false) {}
 
   hit(
-    config: AxiosRequestConfig,
-    newCache: (config: AxiosRequestConfig) => Promise<AxiosResponse>,
+    config: InternalAxiosRequestConfig,
+    newCache: (config: InternalAxiosRequestConfig) => Promise<AxiosResponse>,
   ): Promise<AxiosResponse> {
     const options = mergeSlotOptions(this.options, config.cache);
     const { allowedMethods = CacheSlot.defaultAllowedMethods, validate } = options;
     const enable =
       options.enable !== false &&
-      (isForceEnable(config.cache) ||
-        allowedMethods.includes(
-          config.method!.toLowerCase() as `${Lowercase<Method>}`,
-        )) &&
+      allowedMethods.includes(config.method!.toLowerCase() as `${Lowercase<Method>}`) &&
       (!validate || validate(config));
 
     if (!enable) {

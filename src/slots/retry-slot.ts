@@ -5,8 +5,7 @@ import axios, {
   type Cancel,
   type Method,
 } from 'axios';
-import { isForceEnable } from '../libs/isForceEnable';
-import { mergeSlotOptions } from '../libs/mergeSlotOptions';
+import { mergeSlotOptions } from '../libs/merge-slot-options';
 
 export interface RetryOptions {
   /**
@@ -35,7 +34,7 @@ export interface RetryOptions {
    */
   allowedHttpStatus?: (number | [number, number])[];
   /**
-   * 对于过滤后初步允许重试的请求，执行该方法再次确认。
+   * 允许使用重试的请求，执行该方法再次确认。
    */
   validate?(config: AxiosRequestConfig): boolean;
 }
@@ -79,10 +78,7 @@ export class RetrySlot {
       options.enable !== false &&
       currentTimes <= maxTimes &&
       !axios.isCancel(err) &&
-      (isForceEnable(config.retry) ||
-        allowedMethods.includes(
-          config.method!.toLowerCase() as `${Lowercase<Method>}`,
-        )) &&
+      allowedMethods.includes(config.method!.toLowerCase() as `${Lowercase<Method>}`) &&
       (!err.response || this.isAllowedStatus(err.response, allowedHttpStatus)) &&
       (!validate || validate(config));
 

@@ -1,8 +1,6 @@
 import { AxiosRequestConfig, AxiosResponse } from 'axios';
 
-export const resolveResponse = (
-  config: AxiosRequestConfig,
-): Promise<AxiosResponse> =>
+export const resolveResponse = (config: AxiosRequestConfig): Promise<AxiosResponse> =>
   Promise.resolve({
     data: {
       num: Math.random(),

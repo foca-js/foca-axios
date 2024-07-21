@@ -49,9 +49,11 @@ export class RetrySlot {
     'delete',
   ];
 
-  static defaultAllowedHttpStatus: NonNullable<
-    RetryOptions['allowedHttpStatus']
-  > = [[100, 199], 429, [500, 599]];
+  static defaultAllowedHttpStatus: NonNullable<RetryOptions['allowedHttpStatus']> = [
+    [100, 199],
+    429,
+    [500, 599],
+  ];
 
   static defaultMaxTimes = 3;
 
@@ -81,8 +83,7 @@ export class RetrySlot {
         allowedMethods.includes(
           config.method!.toLowerCase() as `${Lowercase<Method>}`,
         )) &&
-      (!err.response ||
-        this.isAllowedStatus(err.response, allowedHttpStatus)) &&
+      (!err.response || this.isAllowedStatus(err.response, allowedHttpStatus)) &&
       (!validate || validate(config));
 
     return new Promise((resolve) => {

@@ -38,25 +38,16 @@ type CacheMap = Partial<{
   };
 }>;
 
-type FormatKeys = typeof CacheSlot['formatKeys'][number];
+type FormatKeys = (typeof CacheSlot)['formatKeys'][number];
 
 export type CacheFormatConfig = Required<Pick<AxiosRequestConfig, FormatKeys>>;
 
 export class CacheSlot {
   static defaultMaxAge = 10 * 60 * 1000;
 
-  static formatKeys = [
-    'baseURL',
-    'url',
-    'method',
-    'params',
-    'data',
-    'headers',
-  ] as const;
+  static formatKeys = ['baseURL', 'url', 'method', 'params', 'data', 'headers'] as const;
 
-  static defaultAllowedMethods: NonNullable<CacheOptions['allowedMethods']> = [
-    'get',
-  ];
+  static defaultAllowedMethods: NonNullable<CacheOptions['allowedMethods']> = ['get'];
 
   protected cacheMap: CacheMap = {};
 
@@ -67,8 +58,7 @@ export class CacheSlot {
     newCache: (config: AxiosRequestConfig) => Promise<AxiosResponse>,
   ): Promise<AxiosResponse> {
     const options = mergeSlotOptions(this.options, config.cache);
-    const { allowedMethods = CacheSlot.defaultAllowedMethods, validate } =
-      options;
+    const { allowedMethods = CacheSlot.defaultAllowedMethods, validate } = options;
     const enable =
       options.enable !== false &&
       (isForceEnable(config.cache) ||
@@ -123,12 +113,13 @@ export class CacheSlot {
     }
   }
 
-  protected static getFormatConfig(
-    config: AxiosRequestConfig,
-  ): CacheFormatConfig {
-    return this.formatKeys.reduce((carry, key) => {
-      carry[key] = config[key];
-      return carry;
-    }, <Pick<AxiosRequestConfig, FormatKeys>>{}) as CacheFormatConfig;
+  protected static getFormatConfig(config: AxiosRequestConfig): CacheFormatConfig {
+    return this.formatKeys.reduce(
+      (carry, key) => {
+        carry[key] = config[key];
+        return carry;
+      },
+      <Pick<AxiosRequestConfig, FormatKeys>>{},
+    ) as CacheFormatConfig;
   }
 }

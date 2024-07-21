@@ -1,5 +1,6 @@
 import { AxiosError, CanceledError } from 'axios';
 import { AxiosRequestConfig, RetrySlot } from '../src';
+import { expect, test } from 'vitest';
 
 test('Request can retry', async () => {
   const retry = new RetrySlot();
@@ -37,9 +38,7 @@ test('The aborted request should not retry', async () => {
     method: 'get',
   };
 
-  await expect(
-    retry.validate(new CanceledError(''), config, 1),
-  ).resolves.toBeFalsy();
+  await expect(retry.validate(new CanceledError(''), config, 1)).resolves.toBeFalsy();
 });
 
 test('Should match http status', async () => {

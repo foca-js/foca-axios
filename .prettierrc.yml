@@ -4,7 +4,7 @@ singleQuote: true
 # If at least one property in an object requires quotes, quote all properties.
 quoteProps: consistent
 tabWidth: 2
-printWidth: 80
+printWidth: 90
 endOfLine: lf
 trailingComma: all
 bracketSpacing: true
@@ -13,4 +13,4 @@ arrowParens: always
 proseWrap: preserve
 jsxSingleQuote: false
 # Put > on the last line instead of at a new line.
-jsxBracketSameLine: false
+bracketSameLine: false

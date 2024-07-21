@@ -1,6 +1,7 @@
 import { AxiosRequestConfig, CacheSlot } from '../src';
 import sleep from 'sleep-promise';
 import { resolveResponse } from './utils';
+import { expect, test } from 'vitest';
 
 test('Same request can hit cache', async () => {
   const cache = new CacheSlot();

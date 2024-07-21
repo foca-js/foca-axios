@@ -1,5 +1,6 @@
 import { rmSync } from 'fs';
 import { execSync, exec } from 'child_process';
+import { beforeEach, expect, test } from 'vitest';
 
 function testFile(filename: string, expectCode: number) {
   return new Promise((resolve) => {

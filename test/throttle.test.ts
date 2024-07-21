@@ -1,5 +1,6 @@
 import { AxiosRequestConfig, ThrottleSlot } from '../src';
 import { rejectRespone, resolveResponse } from './utils';
+import { expect, test } from 'vitest';
 
 test('Same request can hit throttle', async () => {
   const throttle = new ThrottleSlot();

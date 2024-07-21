@@ -1,9 +1,7 @@
 import type { AxiosPromise, AxiosResponse } from 'axios';
 
 export type TransformResponseHandler = [
-  onResolve?: (
-    value: AxiosResponse,
-  ) => AxiosResponse | PromiseLike<AxiosResponse>,
+  onResolve?: (value: AxiosResponse) => AxiosResponse | PromiseLike<AxiosResponse>,
   onReject?: (...args: any[]) => any,
 ];
 
@@ -18,10 +16,7 @@ export const preventTransform = (
 ): Promise<any> => {
   return <AxiosPromise>{
     then() {
-      transform.push.apply(
-        transform,
-        arguments as unknown as TransformResponseHandler,
-      );
+      transform.push.apply(transform, arguments as unknown as TransformResponseHandler);
       return promise;
     },
   };

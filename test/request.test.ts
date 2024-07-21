@@ -1,12 +1,8 @@
-import axios, {
-  Axios,
-  AxiosError,
-  AxiosRequestConfig,
-  AxiosResponse,
-} from 'axios';
+import axios, { Axios, AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
 import MockAdapter from 'axios-mock-adapter';
 import sleep from 'sleep-promise';
 import { RequestSlot } from '../src/slots/RequestSlot';
+import { expect, test } from 'vitest';
 
 const onResolve = (response: AxiosResponse) => response;
 const onReject = (err: AxiosError) => {
@@ -22,10 +18,7 @@ test('Can request non-standart response', async () => {
   const instance = axios.create();
   const mock = new MockAdapter(instance);
 
-  const request = new RequestSlot(
-    mock.adapter(),
-    (response) => response.data.code,
-  );
+  const request = new RequestSlot(mock.adapter(), (response) => response.data.code);
 
   const config: AxiosRequestConfig = {
     url: '/users',

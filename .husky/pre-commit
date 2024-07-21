@@ -1,0 +1,3 @@
+
+npx --no-install prettier --cache --check .
+npx --no-install tsc

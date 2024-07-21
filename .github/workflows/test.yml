@@ -1,26 +1,18 @@
 name: Test
 
-on:
-  push:
-    branches:
-      - '*'
-    tags-ignore:
-      - '*'
-  pull_request:
-    branches:
+on: [push]
 
 jobs:
   test:
-    if: "!contains(toJson(github.event.commits), '[skip ci]')"
     strategy:
       matrix:
         node-version: [18.x, 20.x, 22.x]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: pnpm/action-setup@v2
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
       - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'pnpm'
@@ -28,7 +20,7 @@ jobs:
       - run: pnpm test
       - name: Upload Coverage
         if: github.ref == 'refs/heads/master' && strategy.job-index == 0
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         with:
           verbose: true
           fail_ci_if_error: true

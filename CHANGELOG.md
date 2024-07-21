@@ -1,3 +1,17 @@
+
+
+# [4.0.0](https://github.com/foca-js/foca-axios/compare/v3.1.0...v4.0.0) (2024-07-21)
+
+
+### Features
+
+* axios全局开启适配器 ([42a6eb8](https://github.com/foca-js/foca-axios/commit/42a6eb88a7fc7b815fb93536194b821b349efbe2))
+
+
+### BREAKING CHANGES
+
+* 缓存默认关闭
+
 ## [3.1.0](https://github.com/foca-js/foca-axios/compare/v3.0.2...v3.1.0)&nbsp;&nbsp;(2023-03-20)
 
 - 所有特性默认都是开启的

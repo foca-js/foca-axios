@@ -9,6 +9,7 @@
   "sideEffects": false,
   "scripts": {
     "test": "vitest",
+    "build": "tsup",
     "prepublishOnly": "tsup",
     "prepare": "husky"
   },

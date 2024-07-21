@@ -14,8 +14,8 @@ jobs:
     if: "!contains(toJson(github.event.commits), '[skip ci]')"
     strategy:
       matrix:
-        node-version: [14.x, 16.x, 18.x]
-        ts-version: [4.6.x, 4.7.x, 4.8.x, 4.9.x]
+        node-version: [18.x, 20.x, 22.x]
+        ts-version: [5.0.x, 5.1.x, 5.2.x, 5.3.x, 5.4.x, 5.5.x]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -34,7 +34,7 @@ jobs:
     if: "!contains(toJson(github.event.commits), '[skip ci]')"
     strategy:
       matrix:
-        node-version: [14.x, 16.x, 18.x]
+        node-version: [18.x, 20.x, 22.x]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3

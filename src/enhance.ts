@@ -105,7 +105,6 @@ export const enhance = <T extends AxiosInstance>(
   const validateRetry = retry.validate.bind(retry);
 
   instance.defaults.adapter = function focaAdapter(config) {
-    console.log('=-----====adapter');
     const transformHandler: TransformResponseHandler = [];
     const promise = Promise.resolve().then(() => {
       return cache.hit(config, () => {

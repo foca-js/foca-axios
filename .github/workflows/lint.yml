@@ -1,0 +1,67 @@
+name: Lint
+
+on: [push]
+
+jobs:
+  git-commit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          cache: 'pnpm'
+          node-version-file: 'package.json'
+      - run: pnpm install
+      - if: github.event_name == 'pull_request'
+        run: pnpm exec commitlint --from ${{ github.event.pull_request.base.sha }} --to ${{ github.event.pull_request.head.sha }} --verbose
+      - if: github.event_name == 'push'
+        run: echo "${{ github.event.head_commit.message }}" | pnpm exec commitlint --verbose
+  type-checking:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        ts: [5.0.x, 5.1.x, 5.2.x, 5.3.x, 5.4.x, 5.5.x]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          cache: 'pnpm'
+          node-version-file: 'package.json'
+      - name: Use Typescript@${{ matrix.ts }}
+        run: |
+          pnpm install
+          pnpm install typescript@${{ matrix.ts }}
+      - run: pnpm exec tsc
+  code-format:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          cache: 'pnpm'
+          node-version-file: 'package.json'
+      - run: pnpm install
+      - run: pnpm exec prettier --cache --check .
+  bundle:
+    needs: [git-commit, type-checking, code-format]
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        node: [18, 20, 22]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          cache: 'pnpm'
+          node-version: ${{ matrix.node }}
+      - run: pnpm install
+      - run: pnpm build

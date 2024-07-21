@@ -11,7 +11,9 @@
     "test": "vitest",
     "build": "tsup",
     "prepublishOnly": "tsup",
-    "prepare": "husky"
+    "prepare": "husky",
+    "deploy:main": "sh scripts/develop-deploy-main.sh",
+    "sync:main": "sh scripts/develop-sync-main.sh"
   },
   "volta": {
     "node": "20.15.1",
@@ -45,12 +47,14 @@
   "devDependencies": {
     "@commitlint/cli": "^19.3.0",
     "@commitlint/config-conventional": "^19.2.2",
+    "@release-it/conventional-changelog": "^8.0.1",
     "@types/clone": "^2.1.4",
     "@types/node": "^20.14.11",
     "@vitest/coverage-v8": "^2.0.3",
     "axios-mock-adapter": "^1.22.0",
     "husky": "^9.1.1",
     "prettier": "^3.3.3",
+    "release-it": "^17.6.0",
     "sleep-promise": "^9.1.0",
     "tsup": "^8.2.1",
     "typescript": "^5.5.3",

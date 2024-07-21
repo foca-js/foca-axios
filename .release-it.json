@@ -1,0 +1,19 @@
+{
+  "git": {
+    "push": true,
+    "commitMessage": "chore: 发布版本v${version}",
+    "requireBranch": "main"
+  },
+  "github": {
+    "release": true
+  },
+  "npm": {
+    "publish": false
+  },
+  "plugins": {
+    "@release-it/conventional-changelog": {
+      "infile": "CHANGELOG.md",
+      "preset": "angular"
+    }
+  }
+}

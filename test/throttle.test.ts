@@ -1,13 +1,15 @@
-import { AxiosRequestConfig, ThrottleSlot } from '../src';
-import { rejectRespone, resolveResponse } from './utils';
+import { AxiosHeaders, InternalAxiosRequestConfig } from '../src';
+import { ThrottleSlot } from '../src/slots/throttle-slot';
+import { rejectResponse, resolveResponse } from './utils';
 import { expect, test } from 'vitest';
 
 test('Same request can hit throttle', async () => {
   const throttle = new ThrottleSlot();
-  const config: AxiosRequestConfig = {
+  const config: InternalAxiosRequestConfig = {
     method: 'get',
     url: '/users',
     params: {},
+    headers: new AxiosHeaders(),
   };
 
   const [a, b] = await Promise.all([
@@ -19,11 +21,12 @@ test('Same request can hit throttle', async () => {
 
 test('Different request can not throttle to each other', async () => {
   const throttle = new ThrottleSlot();
-  const config1: AxiosRequestConfig = {
+  const config1: InternalAxiosRequestConfig = {
     method: 'get',
     url: '/users',
+    headers: new AxiosHeaders(),
   };
-  const config2: AxiosRequestConfig = {
+  const config2: InternalAxiosRequestConfig = {
     ...config1,
     url: '/admins',
   };
@@ -42,12 +45,13 @@ test('Format the config to hit the throttle thread', async () => {
       return config;
     },
   });
-  const config1: AxiosRequestConfig = {
+  const config1: InternalAxiosRequestConfig = {
     method: 'get',
     url: '/users',
     params: {},
+    headers: new AxiosHeaders(),
   };
-  const config2: AxiosRequestConfig = {
+  const config2: InternalAxiosRequestConfig = {
     ...config1,
     url: '/admins',
   };
@@ -67,16 +71,17 @@ test('Force to enable throttle and ignore the allowed methods', async () => {
       return config;
     },
   });
-  const config1: AxiosRequestConfig = {
+  const config1: InternalAxiosRequestConfig = {
     method: 'get',
     url: '/users',
     params: {},
+    headers: new AxiosHeaders(),
   };
-  const config2: AxiosRequestConfig = {
+  const config2: InternalAxiosRequestConfig = {
     ...config1,
     method: 'post',
   };
-  const config3: AxiosRequestConfig = {
+  const config3: InternalAxiosRequestConfig = {
     ...config2,
     throttle: {
       allowedMethods: ['post'],
@@ -94,10 +99,11 @@ test('Force to enable throttle and ignore the allowed methods', async () => {
 
 test('Remove throttle thread after promise resolved', async () => {
   const throttle = new ThrottleSlot({});
-  const config: AxiosRequestConfig = {
+  const config: InternalAxiosRequestConfig = {
     method: 'get',
     url: '/users',
     params: {},
+    headers: new AxiosHeaders(),
   };
 
   const a = await throttle.hit(config, resolveResponse);
@@ -108,13 +114,14 @@ test('Remove throttle thread after promise resolved', async () => {
 
 test('Remove throttle thread after promise rejected', async () => {
   const throttle = new ThrottleSlot({});
-  const config: AxiosRequestConfig = {
+  const config: InternalAxiosRequestConfig = {
     method: 'get',
     url: '/users',
     params: {},
+    headers: new AxiosHeaders(),
   };
 
-  const a = throttle.hit(config, rejectRespone);
+  const a = throttle.hit(config, rejectResponse);
   const b = throttle.hit(config, resolveResponse);
 
   await expect(a).rejects.toThrowError();
@@ -126,12 +133,13 @@ test('Remove throttle thread after promise rejected', async () => {
 
 test('config should not be shared', async () => {
   const throttle = new ThrottleSlot({});
-  const config1: AxiosRequestConfig = {
+  const config1: InternalAxiosRequestConfig = {
     method: 'get',
     url: '/users',
     params: {},
+    headers: new AxiosHeaders(),
   };
-  const config2: AxiosRequestConfig = {
+  const config2: InternalAxiosRequestConfig = {
     ...config1,
   };
 

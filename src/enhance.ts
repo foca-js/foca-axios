@@ -1,21 +1,17 @@
 import {
-  default as axios,
+  default as originAxios,
   AxiosInstance,
-  AxiosRequestConfig,
   CreateAxiosDefaults,
+  getAdapter,
 } from 'axios';
-import { CacheSlot, CacheOptions, CacheFormatConfig } from './slots/CacheSlot';
-import { preventTransform, TransformResponseHandler } from './libs/preventTransform';
-import { overrideRequest, FocaAxiosPromise } from './libs/overrideRequest';
-import { RetryOptions, RetrySlot } from './slots/RetrySlot';
-import { ThrottleSlot, ThrottleOptions } from './slots/ThrottleSlot';
-import { RequestSlot } from './slots/RequestSlot';
+import { CacheSlot, CacheOptions, CacheFormatConfig } from './slots/cache-slot';
+import { preventTransform, TransformResponseHandler } from './libs/prevent-transform';
+import { overrideRequest, FocaAxiosPromise } from './libs/override-request';
+import { RetryOptions, RetrySlot } from './slots/retry-slot';
+import { ThrottleSlot, ThrottleOptions } from './slots/throttle-slot';
+import { RequestSlot } from './slots/request-slot';
 
 declare module 'axios' {
-  export interface CreateAxiosDefaults {
-    enhance?(instance: AxiosInstance): AxiosInstance | void;
-  }
-
   export interface AxiosRequestConfig<D = any> {
     /**
      * 相同请求共享。
@@ -90,31 +86,26 @@ declare module 'axios' {
   }
 }
 
-const originalCreate = axios.create;
-// @ts-ignore
-axios.create = (config: CreateAxiosDefaults = {}): Enhancer => {
-  const instance = originalCreate(config);
-  return config.enhance
-    ? config.enhance(instance) || instance
-    : enhance(instance, config);
-};
-
 /**
- * axios增强适配器，使用`axios.create()`创建的实例无需手动执行该函数
+ * axios增强适配器
  */
-export const enhance = (
-  instance: AxiosInstance,
+export const enhance = <T extends AxiosInstance>(
+  instance: T,
   options: CreateAxiosDefaults = {},
-): AxiosInstance => {
+): T => {
   overrideRequest(instance);
 
   const cache = new CacheSlot(options.cache);
   const throttle = new ThrottleSlot(options.throttle);
-  const request = new RequestSlot(instance.defaults.adapter!, options.getHttpStatus);
+  const request = new RequestSlot(
+    getAdapter(instance.defaults.adapter!),
+    options.getHttpStatus,
+  );
   const retry = new RetrySlot(options.retry);
   const validateRetry = retry.validate.bind(retry);
 
-  instance.defaults.adapter = function focaAdapter(config: AxiosRequestConfig) {
+  instance.defaults.adapter = function focaAdapter(config) {
+    console.log('=-----====adapter');
     const transformHandler: TransformResponseHandler = [];
     const promise = Promise.resolve().then(() => {
       return cache.hit(config, () => {
@@ -130,3 +121,8 @@ export const enhance = (
 
   return instance;
 };
+
+export const axios = enhance(originAxios, originAxios.defaults);
+
+const defaultCreate = axios.create;
+axios.create = (config) => enhance(defaultCreate(config));

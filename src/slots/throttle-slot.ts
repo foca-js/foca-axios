@@ -1,14 +1,14 @@
 import axios, {
   AxiosError,
   AxiosRequestConfig,
+  InternalAxiosRequestConfig,
   type AxiosResponse,
   type Cancel,
   type Method,
 } from 'axios';
 import clone from 'clone';
-import { cloneResponse } from '../libs/cloneResponse';
-import { mergeSlotOptions } from '../libs/mergeSlotOptions';
-import { isForceEnable } from '../libs/isForceEnable';
+import { cloneResponse } from '../libs/clone-response';
+import { mergeSlotOptions } from '../libs/merge-slot-options';
 
 export interface ThrottleOptions {
   /**
@@ -66,8 +66,8 @@ export class ThrottleSlot {
   constructor(protected readonly options?: boolean | ThrottleOptions) {}
 
   hit(
-    config: AxiosRequestConfig,
-    newThread: (config: AxiosRequestConfig) => Promise<AxiosResponse>,
+    config: InternalAxiosRequestConfig,
+    newThread: (config: InternalAxiosRequestConfig) => Promise<AxiosResponse>,
   ): Promise<AxiosResponse> {
     const options = mergeSlotOptions(this.options, config.throttle);
     const {
@@ -78,10 +78,7 @@ export class ThrottleSlot {
 
     const enable =
       options.enable !== false &&
-      (isForceEnable(config.throttle) ||
-        allowedMethods.includes(
-          config.method!.toLowerCase() as `${Lowercase<Method>}`,
-        )) &&
+      allowedMethods.includes(config.method!.toLowerCase() as `${Lowercase<Method>}`) &&
       (!validate || validate(config));
 
     if (!enable) {

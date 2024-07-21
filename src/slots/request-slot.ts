@@ -1,9 +1,15 @@
-import { AxiosError, type AxiosResponse, type AxiosRequestConfig } from 'axios';
-import type { TransformResponseHandler } from '../libs/preventTransform';
+import {
+  AxiosError,
+  type AxiosResponse,
+  type AxiosRequestConfig,
+  AxiosAdapter,
+  InternalAxiosRequestConfig,
+} from 'axios';
+import type { TransformResponseHandler } from '../libs/prevent-transform';
 
 export class RequestSlot {
   constructor(
-    protected readonly defaultAdapter: NonNullable<AxiosRequestConfig['adapter']>,
+    protected readonly defaultAdapter: AxiosAdapter,
     protected readonly getHttpStatus?: (response: AxiosResponse) => number,
   ) {
     if (!defaultAdapter) {
@@ -12,7 +18,7 @@ export class RequestSlot {
   }
 
   hit(
-    config: AxiosRequestConfig,
+    config: InternalAxiosRequestConfig,
     [onResolve, onReject]: TransformResponseHandler,
     shouldLoop: (
       err: AxiosError,

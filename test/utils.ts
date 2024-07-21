@@ -1,7 +1,9 @@
-import { AxiosRequestConfig, AxiosResponse } from 'axios';
+import { AxiosResponse, InternalAxiosRequestConfig } from 'axios';
 
-export const resolveResponse = (config: AxiosRequestConfig): Promise<AxiosResponse> =>
-  Promise.resolve({
+export const resolveResponse = (
+  config: InternalAxiosRequestConfig,
+): Promise<AxiosResponse> => {
+  return Promise.resolve({
     data: {
       num: Math.random(),
     },
@@ -11,5 +13,6 @@ export const resolveResponse = (config: AxiosRequestConfig): Promise<AxiosRespon
     status: 200,
     statusText: 'OK',
   });
+};
 
-export const rejectRespone = () => Promise.reject(new Error(''));
+export const rejectResponse = () => Promise.reject(new Error(''));

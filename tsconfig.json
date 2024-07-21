@@ -9,7 +9,7 @@
     "outDir": "./build",
     "rootDir": ".",
     "importHelpers": false,
-
+    "noEmit": true,
     "strict": true,
     "noImplicitAny": true,
     "strictNullChecks": true,

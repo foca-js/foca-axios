@@ -3,9 +3,7 @@ import type { TransformResponseHandler } from '../libs/preventTransform';
 
 export class RequestSlot {
   constructor(
-    protected readonly defaultAdapter: NonNullable<
-      AxiosRequestConfig['adapter']
-    >,
+    protected readonly defaultAdapter: NonNullable<AxiosRequestConfig['adapter']>,
     protected readonly getHttpStatus?: (response: AxiosResponse) => number,
   ) {
     if (!defaultAdapter) {

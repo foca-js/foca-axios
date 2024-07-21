@@ -1,6 +1,7 @@
 import axios, { AxiosResponse } from 'axios';
 import MockAdapter from 'axios-mock-adapter';
 import { enhance } from '../src';
+import { expect, test } from 'vitest';
 
 let mock: MockAdapter;
 

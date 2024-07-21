@@ -11,9 +11,7 @@ export const mergeSlotOptions = <T extends BaseConfig>(
   }
 
   const globalOpts: BaseConfig | undefined =
-    typeof globalOptions === 'boolean'
-      ? { enable: globalOptions }
-      : globalOptions;
+    typeof globalOptions === 'boolean' ? { enable: globalOptions } : globalOptions;
   const localOpts: BaseConfig | undefined =
     typeof localOptions === 'boolean' ? { enable: localOptions } : localOptions;
 

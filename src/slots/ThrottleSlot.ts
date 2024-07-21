@@ -32,11 +32,9 @@ export interface ThrottleOptions {
   validate?(config: AxiosRequestConfig): boolean;
 }
 
-type FormatKeys = typeof ThrottleSlot['formatKeys'][number];
+type FormatKeys = (typeof ThrottleSlot)['formatKeys'][number];
 
-export type ThrottleFormatConfig = Required<
-  Pick<AxiosRequestConfig, FormatKeys>
->;
+export type ThrottleFormatConfig = Required<Pick<AxiosRequestConfig, FormatKeys>>;
 
 export class ThrottleSlot {
   static formatKeys = [
@@ -53,8 +51,13 @@ export class ThrottleSlot {
     'xsrfHeaderName',
   ] as const;
 
-  static defaultAllowedMethods: NonNullable<ThrottleOptions['allowedMethods']> =
-    ['get', 'head', 'put', 'patch', 'delete'];
+  static defaultAllowedMethods: NonNullable<ThrottleOptions['allowedMethods']> = [
+    'get',
+    'head',
+    'put',
+    'patch',
+    'delete',
+  ];
 
   protected readonly threads: Partial<{
     [K: string]: Promise<AxiosResponse>;
@@ -126,12 +129,13 @@ export class ThrottleSlot {
     return promise;
   }
 
-  protected static getFormatConfig(
-    config: AxiosRequestConfig,
-  ): ThrottleFormatConfig {
-    return this.formatKeys.reduce((carry, key) => {
-      carry[key] = config[key];
-      return carry;
-    }, <Pick<AxiosRequestConfig, FormatKeys>>{}) as ThrottleFormatConfig;
+  protected static getFormatConfig(config: AxiosRequestConfig): ThrottleFormatConfig {
+    return this.formatKeys.reduce(
+      (carry, key) => {
+        carry[key] = config[key];
+        return carry;
+      },
+      <Pick<AxiosRequestConfig, FormatKeys>>{},
+    ) as ThrottleFormatConfig;
   }
 }

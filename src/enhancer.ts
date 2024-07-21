@@ -5,10 +5,7 @@ import {
   CreateAxiosDefaults,
 } from 'axios';
 import { CacheSlot, CacheOptions, CacheFormatConfig } from './slots/CacheSlot';
-import {
-  preventTransform,
-  TransformResponseHandler,
-} from './libs/preventTransform';
+import { preventTransform, TransformResponseHandler } from './libs/preventTransform';
 import { overrideRequest, FocaAxiosPromise } from './libs/overrideRequest';
 import { RetryOptions, RetrySlot } from './slots/RetrySlot';
 import { ThrottleSlot, ThrottleOptions } from './slots/ThrottleSlot';
@@ -113,10 +110,7 @@ export const enhance = (
 
   const cache = new CacheSlot(options.cache);
   const throttle = new ThrottleSlot(options.throttle);
-  const request = new RequestSlot(
-    instance.defaults.adapter!,
-    options.getHttpStatus,
-  );
+  const request = new RequestSlot(instance.defaults.adapter!, options.getHttpStatus);
   const retry = new RetrySlot(options.retry);
   const validateRetry = retry.validate.bind(retry);
 

@@ -1,9 +1,4 @@
-import {
-  Axios,
-  AxiosRequestConfig,
-  type AxiosInstance,
-  type AxiosResponse,
-} from 'axios';
+import { Axios, AxiosRequestConfig, type AxiosInstance, type AxiosResponse } from 'axios';
 
 export interface FocaAxiosPromise<T = any, D = any> extends Promise<T> {
   /**

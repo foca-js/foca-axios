@@ -1,3 +1,4 @@
+import { expect, test } from 'vitest';
 import { mergeSlotOptions } from '../src';
 
 test('Input undefined', () => {
@@ -57,9 +58,7 @@ test('Both object', () => {
     enable: false,
   });
 
-  expect(
-    mergeSlotOptions({ enable: true, a: 1, b: 2 }, { enable: true }),
-  ).toStrictEqual({
+  expect(mergeSlotOptions({ enable: true, a: 1, b: 2 }, { enable: true })).toStrictEqual({
     enable: true,
     a: 1,
     b: 2,

@@ -34,7 +34,7 @@ test('相同请求可以命中缓存', async () => {
 
 test('过期时间', async () => {
   const cache = new CacheSlot({
-    maxAge: 200,
+    maxAge: 2000,
   });
   const config: InternalAxiosRequestConfig = {
     method: 'get',
@@ -44,9 +44,9 @@ test('过期时间', async () => {
 
   const a = await cache.hit(config, resolveResponse);
   const b = await cache.hit(config, resolveResponse);
-  await sleep(150);
+  await sleep(1000);
   const c = await cache.hit(config, resolveResponse);
-  await sleep(51);
+  await sleep(1800);
   const d = await cache.hit(config, resolveResponse);
 
   expect(a.data).toEqual(b.data);

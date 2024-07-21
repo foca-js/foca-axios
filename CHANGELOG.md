@@ -1,5 +1,7 @@
 
 
+## [4.0.1](https://github.com/foca-js/foca-axios/compare/v4.0.0...v4.0.1) (2024-07-21)
+
 # [4.0.0](https://github.com/foca-js/foca-axios/compare/v3.1.0...v4.0.0) (2024-07-21)
 
 

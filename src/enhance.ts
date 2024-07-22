@@ -3,6 +3,7 @@ import {
   AxiosInstance,
   CreateAxiosDefaults,
   getAdapter,
+  AxiosAdapter,
 } from 'axios';
 import { CacheSlot, CacheOptions, CacheFormatConfig } from './slots/cache-slot';
 import { preventTransform, TransformResponseHandler } from './libs/prevent-transform';
@@ -84,6 +85,10 @@ declare module 'axios' {
      */
     clearCache: (filter?: (config: CacheFormatConfig) => boolean) => void;
   }
+
+  export interface AxiosAdapter {
+    __prev_adapter__: any;
+  }
 }
 
 /**
@@ -95,16 +100,18 @@ export const enhance = <T extends AxiosInstance>(
 ): T => {
   overrideRequest(instance);
 
+  let defaultAdapter = instance.defaults.adapter;
+  if (typeof defaultAdapter === 'function') {
+    defaultAdapter = defaultAdapter.__prev_adapter__ || defaultAdapter;
+  }
+
   const cache = new CacheSlot(options.cache);
   const throttle = new ThrottleSlot(options.throttle);
-  const request = new RequestSlot(
-    getAdapter(instance.defaults.adapter!),
-    options.getHttpStatus,
-  );
+  const request = new RequestSlot(getAdapter(defaultAdapter), options.getHttpStatus);
   const retry = new RetrySlot(options.retry);
   const validateRetry = retry.validate.bind(retry);
 
-  instance.defaults.adapter = function focaAdapter(config) {
+  const focaAdapter: AxiosAdapter = function focaAdapter(config) {
     const transformHandler: TransformResponseHandler = [];
     const promise = Promise.resolve().then(() => {
       return cache.hit(config, () => {
@@ -115,7 +122,8 @@ export const enhance = <T extends AxiosInstance>(
     });
     return preventTransform(promise, transformHandler);
   };
-
+  focaAdapter.__prev_adapter__ = defaultAdapter;
+  instance.defaults.adapter = focaAdapter;
   instance.clearCache = cache.clear.bind(cache);
 
   return instance;
@@ -123,5 +131,5 @@ export const enhance = <T extends AxiosInstance>(
 
 export const axios = enhance(originAxios, originAxios.defaults);
 
-const defaultCreate = axios.create;
-axios.create = (config) => enhance(defaultCreate(config));
+const axiosCreate = axios.create;
+axios.create = (config) => enhance(axiosCreate(config));

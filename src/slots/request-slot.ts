@@ -1,7 +1,6 @@
 import {
   AxiosError,
   type AxiosResponse,
-  type AxiosRequestConfig,
   AxiosAdapter,
   InternalAxiosRequestConfig,
 } from 'axios';
@@ -20,9 +19,9 @@ export class RequestSlot {
   hit(
     config: InternalAxiosRequestConfig,
     [onResolve, onReject]: TransformResponseHandler,
-    shouldLoop: (
+    shouldRetry: (
       err: AxiosError,
-      config: AxiosRequestConfig,
+      config: InternalAxiosRequestConfig,
       currentTimes: number,
     ) => Promise<boolean>,
   ): Promise<any> {
@@ -36,6 +35,8 @@ export class RequestSlot {
 
           if (config.validateStatus && getHttpStatus) {
             const realHttpStatus = getHttpStatus(response);
+
+            response.status = realHttpStatus;
 
             if (!config.validateStatus(realHttpStatus)) {
               return Promise.reject(
@@ -53,7 +54,7 @@ export class RequestSlot {
           return response;
         })
         .catch((err: AxiosError) => {
-          return shouldLoop(err, config, currentTimes + 1).then(
+          return shouldRetry(err, config, currentTimes + 1).then(
             (enable) => {
               return enable ? loop(currentTimes + 1) : Promise.reject(err);
             },

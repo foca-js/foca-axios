@@ -1,6 +1,7 @@
 import axios, {
   AxiosError,
   AxiosRequestConfig,
+  InternalAxiosRequestConfig,
   type AxiosResponse,
   type Cancel,
   type Method,
@@ -18,7 +19,7 @@ export interface RetryOptions {
    */
   maxTimes?: number;
   /**
-   * 每次重试间隔，默认：`100`ms
+   * 每次重试间隔，默认：`300`ms
    * @see setTimeout()
    * @see RetrySlot.defaultDelay
    */
@@ -34,9 +35,33 @@ export interface RetryOptions {
    */
   allowedHttpStatus?: (number | [number, number])[];
   /**
-   * 允许使用重试的请求，执行该方法再次确认。
+   * 允许使用重试的请求，执行该方法再次确认
    */
   validate?(config: AxiosRequestConfig): boolean;
+  /**
+   * 重试前更新令牌
+   *
+   * 当检测到401 unauthorized状态码，如果该函数返回true，
+   * 则忽略 `allowedMethods` 和 `allowedHttpStatus` 的判断并继续重试。
+   *
+   * 注意：函数内的请求即使出错也不会进行重试
+   *
+   * ```typescript
+   * axios.create({
+   *   retry: {
+   *     async resolveUnauthorized(config) {
+   *        const result = await axios.post('/refresh/token', {...});
+   *        config.headers.Authorization = `Bearer ${result.token}`;
+   *        return true;
+   *     }
+   *   }
+   * });
+   * ```
+   */
+  resolveUnauthorized?: (
+    config: InternalAxiosRequestConfig,
+    err: AxiosError,
+  ) => Promise<boolean>;
 }
 
 export class RetrySlot {
@@ -56,13 +81,15 @@ export class RetrySlot {
 
   static defaultMaxTimes = 3;
 
-  static defaultDelay = 100;
+  static defaultDelay = 300;
+
+  private resolvingAuthorized = false;
 
   constructor(protected readonly options?: boolean | RetryOptions) {}
 
-  validate(
+  async validate(
     err: AxiosError | Cancel,
-    config: AxiosRequestConfig,
+    config: InternalAxiosRequestConfig,
     currentTimes: number,
   ): Promise<boolean> {
     const options = mergeSlotOptions(this.options, config.retry);
@@ -71,25 +98,43 @@ export class RetrySlot {
       maxTimes = RetrySlot.defaultMaxTimes,
       allowedMethods = RetrySlot.defaultAllowedMethods,
       allowedHttpStatus = RetrySlot.defaultAllowedHttpStatus,
+      resolveUnauthorized,
       validate,
     } = options;
 
-    const enable =
-      options.enable !== false &&
-      currentTimes <= maxTimes &&
-      !axios.isCancel(err) &&
-      allowedMethods.includes(config.method!.toLowerCase() as `${Lowercase<Method>}`) &&
-      (!err.response || this.isAllowedStatus(err.response, allowedHttpStatus)) &&
-      (!validate || validate(config));
+    if (this.resolvingAuthorized) return false;
+
+    const basicEnable =
+      options.enable !== false && currentTimes <= maxTimes && !axios.isCancel(err);
+
+    if (!basicEnable) return false;
+
+    let enable = false;
+    if (err.response && err.response.status === 401 && resolveUnauthorized) {
+      try {
+        this.resolvingAuthorized = true;
+        enable = await resolveUnauthorized(config, err);
+      } catch {
+        enable = false;
+      } finally {
+        this.resolvingAuthorized = false;
+      }
+    }
+
+    if (!enable) {
+      enable =
+        allowedMethods.includes(config.method!.toLowerCase() as `${Lowercase<Method>}`) &&
+        (!err.response || this.isAllowedStatus(err.response, allowedHttpStatus));
+    }
+
+    if (validate) {
+      enable = validate(config);
+    }
+
+    if (!enable) return false;
 
     return new Promise((resolve) => {
-      if (enable) {
-        setTimeout(() => {
-          resolve(true);
-        }, delay);
-      } else {
-        resolve(false);
-      }
+      setTimeout(resolve, delay, true);
     });
   }
 

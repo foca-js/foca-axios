@@ -42,7 +42,7 @@ export interface RetryOptions {
    * 重试前更新令牌
    *
    * 当检测到401 unauthorized状态码，如果该函数返回true，
-   * 则忽略 `allowedMethods` 和 `allowedHttpStatus` 的判断并继续重试。
+   * 则忽略 **allowedMethods** 和 **allowedHttpStatus** 的判断并继续重试。
    *
    * 注意：函数内的请求即使出错也不会进行重试
    *
@@ -51,7 +51,9 @@ export interface RetryOptions {
    *   retry: {
    *     async resolveUnauthorized(config) {
    *        const result = await axios.post('/refresh/token', {...});
+   *        // config是即将重试的请求配置
    *        config.headers.Authorization = `Bearer ${result.token}`;
+   *        // 代表已经解决授权问题，继续重试
    *        return true;
    *     }
    *   }

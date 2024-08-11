@@ -1,5 +1,18 @@
 
 
+# [4.1.0](https://github.com/foca-js/foca-axios/compare/v4.0.1...v4.1.0) (2024-07-22)
+
+
+### Bug Fixes
+
+* axios.create()使用了重复的适配器 ([e15590f](https://github.com/foca-js/foca-axios/commit/e15590f41104e7d9358aa1dd0d40cf668538a632))
+
+
+### Features
+
+* 重试前允许执行更新令牌操作 ([03807f2](https://github.com/foca-js/foca-axios/commit/03807f23a4ac6bf7c8d51c83b040e3df05b60d6d))
+
+
 ## [4.0.1](https://github.com/foca-js/foca-axios/compare/v4.0.0...v4.0.1) (2024-07-21)
 
 # [4.0.0](https://github.com/foca-js/foca-axios/compare/v3.1.0...v4.0.0) (2024-07-21)

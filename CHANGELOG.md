@@ -1,5 +1,12 @@
 
 
+## [4.1.2](https://github.com/foca-js/foca-axios/compare/v4.1.1...v4.1.2) (2024-10-25)
+
+
+### Bug Fixes
+
+* 令牌刷新后只重试了其中一个接口 ([c680377](https://github.com/foca-js/foca-axios/commit/c6803770a9e967e964c434935da8883ff699deb6))
+
 ## [4.1.1](https://github.com/foca-js/foca-axios/compare/v4.1.0...v4.1.1) (2024-08-11)
 
 # [4.1.0](https://github.com/foca-js/foca-axios/compare/v4.0.1...v4.1.0) (2024-07-22)

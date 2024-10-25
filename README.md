@@ -56,7 +56,7 @@ retry配置中提供了`resolveUnauthorized`函数
 
 当检测到401 unauthorized状态码，如果该函数返回true，则忽略 **allowedMethods** 和 **allowedHttpStatus** 的判断并继续重试。
 
-注意：函数内的请求即使出错也不会进行重试
+注意：函数内的请求如果使用到GET等请求，建议在单个请求种手动关闭retry功能，以免出现死循环
 
 ```typescript
 const http = axios.create({
@@ -70,7 +70,7 @@ const http = axios.create({
     },
     onAuthorized(config) {
       const token = getToken();
-      config.headers.Authorization = `Bearer ${result.token}`;
+      config.headers.Authorization = `Bearer ${token}`;
     }
   },
 });

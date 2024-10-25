@@ -8,7 +8,7 @@ import axios, {
 } from 'axios';
 import { mergeSlotOptions } from '../libs/merge-slot-options';
 
-export interface RetryOptions {
+export type RetryOptions = {
   /**
    * 失败的请求是否允许重试，默认：`true`
    */
@@ -38,33 +38,49 @@ export interface RetryOptions {
    * 允许使用重试的请求，执行该方法再次确认
    */
   validate?(config: AxiosRequestConfig): boolean;
-  /**
-   * 重试前更新令牌
-   *
-   * 当检测到401 unauthorized状态码，如果该函数返回true，
-   * 则忽略 **allowedMethods** 和 **allowedHttpStatus** 的判断并继续重试。
-   *
-   * 注意：函数内的请求即使出错也不会进行重试
-   *
-   * ```typescript
-   * axios.create({
-   *   retry: {
-   *     async resolveUnauthorized(config) {
-   *        const result = await axios.post('/refresh/token', {...});
-   *        // config是即将重试的请求配置
-   *        config.headers.Authorization = `Bearer ${result.token}`;
-   *        // 代表已经解决授权问题，继续重试
-   *        return true;
-   *     }
-   *   }
-   * });
-   * ```
-   */
-  resolveUnauthorized?: (
-    config: InternalAxiosRequestConfig,
-    err: AxiosError,
-  ) => Promise<boolean>;
-}
+} & (
+  | { resolveUnauthorized?: undefined; onAuthorized?: undefined }
+  | {
+      /**
+       * 重试前更新令牌
+       *
+       * 当检测到401 unauthorized状态码，如果该函数返回true，
+       * 则忽略 **allowedMethods** 和 **allowedHttpStatus** 的判断并继续重试。
+       *
+       * 注意：函数内的请求如果使用到GET等请求，建议在单个请求种手动关闭retry功能，以免出现死循环
+       *
+       * ```typescript
+       * axios.create({
+       *   retry: {
+       *     async resolveUnauthorized() {
+       *        const result = await axios.post('/refresh/token', {...});
+       *        // 存储令牌，即将在 onAuthorized 中用到
+       *        saveToken(result.token);
+       *        // 代表已经解决授权问题，允许继续重试
+       *        return true;
+       *     }
+       *   }
+       * });
+       * ```
+       */
+      resolveUnauthorized: (err: AxiosError) => Promise<boolean>;
+      /**
+       * 修改即将重试的config，比如替换令牌
+       *
+       * ```typescript
+       * axios.create({
+       *   retry: {
+       *     onAuthorized(config) {
+       *       const token = getToken();
+       *       config.headers.Authorization = `Bearer ${token}`;
+       *     }
+       *   }
+       * })
+       * ```
+       */
+      onAuthorized: (config: InternalAxiosRequestConfig) => void | Promise<void>;
+    }
+);
 
 export class RetrySlot {
   static defaultAllowedMethods: NonNullable<RetryOptions['allowedMethods']> = [
@@ -74,18 +90,21 @@ export class RetrySlot {
     'patch',
     'delete',
   ];
-
   static defaultAllowedHttpStatus: NonNullable<RetryOptions['allowedHttpStatus']> = [
     [100, 199],
     429,
     [500, 599],
   ];
-
   static defaultMaxTimes = 3;
-
   static defaultDelay = 300;
 
-  private resolvingAuthorized = false;
+  private readonly resolvingAuthorized: {
+    refreshTime: number;
+    handler: Promise<boolean> | null;
+  } = {
+    refreshTime: 0,
+    handler: null,
+  };
 
   constructor(protected readonly options?: boolean | RetryOptions) {}
 
@@ -101,25 +120,39 @@ export class RetrySlot {
       allowedMethods = RetrySlot.defaultAllowedMethods,
       allowedHttpStatus = RetrySlot.defaultAllowedHttpStatus,
       resolveUnauthorized,
+      onAuthorized,
       validate,
     } = options;
 
-    if (this.resolvingAuthorized) return false;
-
     const basicEnable =
       options.enable !== false && currentTimes <= maxTimes && !axios.isCancel(err);
-
     if (!basicEnable) return false;
 
     let enable = false;
+
+    // 刷新令牌之类的操作只能执行一次，如果每个接口都去刷新，则会导致令牌覆盖问题
     if (err.response && err.response.status === 401 && resolveUnauthorized) {
-      try {
-        this.resolvingAuthorized = true;
-        enable = await resolveUnauthorized(config, err);
-      } catch {
-        enable = false;
-      } finally {
-        this.resolvingAuthorized = false;
+      if (this.resolvingAuthorized.handler) {
+        try {
+          enable = await this.resolvingAuthorized.handler;
+          await onAuthorized(config);
+        } catch {
+          enable = false;
+        }
+      } else if (this.resolvingAuthorized.refreshTime > config.timestamp) {
+        await onAuthorized(config);
+      } else {
+        try {
+          this.resolvingAuthorized.handler = resolveUnauthorized(err);
+          enable = await this.resolvingAuthorized.handler;
+          this.resolvingAuthorized.refreshTime = Date.now();
+          await onAuthorized(config);
+        } catch (e) {
+          console.error(e);
+          enable = false;
+        } finally {
+          this.resolvingAuthorized.handler = null;
+        }
       }
     }
 

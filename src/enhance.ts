@@ -13,6 +13,10 @@ import { ThrottleSlot, ThrottleOptions } from './slots/throttle-slot';
 import { RequestSlot } from './slots/request-slot';
 
 declare module 'axios' {
+  export interface InternalAxiosRequestConfig {
+    timestamp: number;
+  }
+
   export interface AxiosRequestConfig<D = any> {
     /**
      * 相同请求共享。
@@ -112,6 +116,7 @@ export const enhance = <T extends AxiosInstance>(
   const validateRetry = retry.validate.bind(retry);
 
   const focaAdapter: AxiosAdapter = function focaAdapter(config) {
+    config.timestamp = Date.now();
     const transformHandler: TransformResponseHandler = [];
     const promise = Promise.resolve().then(() => {
       return cache.hit(config, () => {

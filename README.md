@@ -61,13 +61,17 @@ retry配置中提供了`resolveUnauthorized`函数
 ```typescript
 const http = axios.create({
   retry: {
-    async resolveUnauthorized(config) {
+    async resolveUnauthorized(err) {
       const result = await axios.post('/refresh/token', {...});
-      // config是即将重试的请求配置
-      config.headers.Authorization = `Bearer ${result.token}`;
-      // 代表已经解决授权问题，继续重试
+      // 存储令牌，即将在 onAuthorized 中用到
+      saveToken(result.token);
+      // 代表已经解决授权问题，允许继续重试
       return true;
     },
+    onAuthorized(config) {
+      const token = getToken();
+      config.headers.Authorization = `Bearer ${result.token}`;
+    }
   },
 });
 ```

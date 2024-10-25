@@ -4,8 +4,9 @@ import {
   CanceledError,
   InternalAxiosRequestConfig,
 } from 'axios';
-import { describe, expect, test } from 'vitest';
+import { describe, expect, test, vitest } from 'vitest';
 import { RetrySlot } from '../src/slots/retry-slot';
+import sleep from 'sleep-promise';
 
 test('允许重试', async () => {
   const retry = new RetrySlot();
@@ -13,6 +14,7 @@ test('允许重试', async () => {
     url: '/users',
     method: 'get',
     headers: new AxiosHeaders(),
+    timestamp: Date.now(),
   };
   const error = new AxiosError('', void 0, config, null, undefined);
 
@@ -29,12 +31,14 @@ test('validate权限最高', async () => {
     url: '/users',
     method: 'get',
     headers: new AxiosHeaders(),
+    timestamp: Date.now(),
   };
   const error1 = new AxiosError('', void 0, config1, null, undefined);
   const config2: InternalAxiosRequestConfig = {
     url: '/admins',
     method: 'get',
     headers: new AxiosHeaders(),
+    timestamp: Date.now(),
   };
   const error2 = new AxiosError('', void 0, config2, null, undefined);
 
@@ -51,6 +55,7 @@ test('最大重试次数', async () => {
     url: '/users',
     method: 'get',
     headers: new AxiosHeaders(),
+    timestamp: Date.now(),
   };
   const error = new AxiosError('', void 0, config, null, undefined);
 
@@ -67,6 +72,7 @@ test('被手动取消的请求不会重试', async () => {
     url: '/users',
     method: 'get',
     headers: new AxiosHeaders(),
+    timestamp: Date.now(),
   };
 
   await expect(retry.validate(new CanceledError(''), config, 1)).resolves.toBeFalsy();
@@ -82,6 +88,7 @@ test('匹配http状态码', async () => {
     url: '/users',
     method: 'get',
     headers: new AxiosHeaders(),
+    timestamp: Date.now(),
   };
   const error = new AxiosError(
     '',
@@ -106,6 +113,7 @@ describe('解决401授权问题', () => {
     url: '/users',
     method: 'post',
     headers: new AxiosHeaders(),
+    timestamp: Date.now(),
   };
   const error = new AxiosError(
     '',
@@ -128,6 +136,7 @@ describe('解决401授权问题', () => {
       async resolveUnauthorized() {
         return true;
       },
+      onAuthorized() {},
     });
     await expect(retry.validate(error, config, 1)).resolves.toBeTruthy();
   });
@@ -139,6 +148,7 @@ describe('解决401授权问题', () => {
       async resolveUnauthorized() {
         return false;
       },
+      onAuthorized() {},
     });
     await expect(retry.validate(error, config, 1)).resolves.toBeFalsy();
   });
@@ -150,39 +160,87 @@ describe('解决401授权问题', () => {
       async resolveUnauthorized() {
         throw new Error('x');
       },
+      onAuthorized() {},
     });
     await expect(retry.validate(error, config, 1)).resolves.toBeFalsy();
   });
 
-  test('函数内不允许retry', async () => {
+  test('多个请求出现未授权情况时，只处理一次授权', async () => {
+    const spy1 = vitest.fn();
+    const spy2 = vitest.fn();
+
     const retry = new RetrySlot({
       allowedMethods: ['get'],
       allowedHttpStatus: [400],
       async resolveUnauthorized() {
-        const config1: InternalAxiosRequestConfig = {
-          url: '/users',
-          method: 'get',
-          headers: new AxiosHeaders(),
-        };
-        const error1 = new AxiosError(
-          '',
-          void 0,
-          config1,
-          {},
-          {
-            status: 400,
-            data: [],
-            statusText: 'Bad Request',
-            headers: {},
-            config,
-          },
-        );
-        await expect(retry.validate(error1, config1, 1)).resolves.toBeFalsy();
-        await expect(retry.validate(error, config, 1)).resolves.toBeFalsy();
-
+        await sleep(2000);
+        spy1();
         return true;
       },
+      onAuthorized() {
+        spy2();
+      },
     });
-    await expect(retry.validate(error, config, 1)).resolves.toBeTruthy();
+
+    const result = await Promise.all([
+      retry.validate(error, config, 1),
+      retry.validate(error, config, 1),
+      retry.validate(error, config, 1),
+      retry.validate(error, config, 1),
+    ]);
+
+    expect(spy1).toBeCalledTimes(1);
+    expect(spy2).toBeCalledTimes(4);
+    expect(result).toMatchObject([true, true, true, true]);
+  });
+
+  test('有请求在重新授权后才响应并返回401状态码，则应当共用授权数据', async () => {
+    const spy1 = vitest.fn();
+    const spy2 = vitest.fn();
+
+    const retry = new RetrySlot({
+      allowedMethods: ['get'],
+      allowedHttpStatus: [400],
+      async resolveUnauthorized() {
+        await sleep(2000);
+        spy1();
+        return true;
+      },
+      onAuthorized() {
+        spy2();
+      },
+    });
+
+    const config1: InternalAxiosRequestConfig = {
+      url: '/users',
+      method: 'get',
+      headers: new AxiosHeaders(),
+      timestamp: Date.now(),
+    };
+    const config2: InternalAxiosRequestConfig = {
+      url: '/users',
+      method: 'get',
+      headers: new AxiosHeaders(),
+      timestamp: Date.now() - 10000,
+    };
+    const config3: InternalAxiosRequestConfig = {
+      url: '/users',
+      method: 'get',
+      headers: new AxiosHeaders(),
+      timestamp: Date.now() + 10000,
+    };
+
+    await retry.validate(error, config1, 1);
+    expect(spy1).toBeCalledTimes(1);
+    expect(spy2).toBeCalledTimes(1);
+
+    await retry.validate(error, config2, 1);
+
+    expect(spy1).toBeCalledTimes(1);
+    expect(spy2).toBeCalledTimes(2);
+
+    await retry.validate(error, config3, 1);
+    expect(spy1).toBeCalledTimes(2);
+    expect(spy2).toBeCalledTimes(3);
   });
 });

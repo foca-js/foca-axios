@@ -10,6 +10,7 @@ test('Same request can hit throttle', async () => {
     url: '/users',
     params: {},
     headers: new AxiosHeaders(),
+    timestamp: Date.now(),
   };
 
   const [a, b] = await Promise.all([
@@ -25,6 +26,7 @@ test('Different request can not throttle to each other', async () => {
     method: 'get',
     url: '/users',
     headers: new AxiosHeaders(),
+    timestamp: Date.now(),
   };
   const config2: InternalAxiosRequestConfig = {
     ...config1,
@@ -50,6 +52,7 @@ test('Format the config to hit the throttle thread', async () => {
     url: '/users',
     params: {},
     headers: new AxiosHeaders(),
+    timestamp: Date.now(),
   };
   const config2: InternalAxiosRequestConfig = {
     ...config1,
@@ -76,6 +79,7 @@ test('Force to enable throttle and ignore the allowed methods', async () => {
     url: '/users',
     params: {},
     headers: new AxiosHeaders(),
+    timestamp: Date.now(),
   };
   const config2: InternalAxiosRequestConfig = {
     ...config1,
@@ -104,6 +108,7 @@ test('Remove throttle thread after promise resolved', async () => {
     url: '/users',
     params: {},
     headers: new AxiosHeaders(),
+    timestamp: Date.now(),
   };
 
   const a = await throttle.hit(config, resolveResponse);
@@ -119,6 +124,7 @@ test('Remove throttle thread after promise rejected', async () => {
     url: '/users',
     params: {},
     headers: new AxiosHeaders(),
+    timestamp: Date.now(),
   };
 
   const a = throttle.hit(config, rejectResponse);
@@ -138,6 +144,7 @@ test('config should not be shared', async () => {
     url: '/users',
     params: {},
     headers: new AxiosHeaders(),
+    timestamp: Date.now(),
   };
   const config2: InternalAxiosRequestConfig = {
     ...config1,

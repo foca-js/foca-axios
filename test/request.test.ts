@@ -31,6 +31,7 @@ test('请求费标准响应数据', async () => {
     method: 'get',
     validateStatus: instance.defaults.validateStatus,
     headers: new AxiosHeaders(),
+    timestamp: Date.now(),
   };
 
   mock.onGet('/users').replyOnce(200, { code: 201, data: 'abc' });
@@ -62,6 +63,7 @@ test('重复请求直到成功', async () => {
     method: 'get',
     validateStatus: instance.defaults.validateStatus,
     headers: new AxiosHeaders(),
+    timestamp: Date.now(),
   };
 
   mock.onGet('/users').replyOnce(400);

@@ -10,6 +10,7 @@ test('默认关闭', async () => {
     method: 'get',
     url: '/users',
     headers: new AxiosHeaders(),
+    timestamp: Date.now(),
   };
 
   const a = await cache.hit(config, resolveResponse);
@@ -24,6 +25,7 @@ test('相同请求可以命中缓存', async () => {
     method: 'get',
     url: '/users',
     headers: new AxiosHeaders(),
+    timestamp: Date.now(),
   };
 
   const a = await cache.hit(config, resolveResponse);
@@ -40,6 +42,7 @@ test('过期时间', async () => {
     method: 'get',
     url: '/users',
     headers: new AxiosHeaders(),
+    timestamp: Date.now(),
   };
 
   const a = await cache.hit(config, resolveResponse);
@@ -60,6 +63,7 @@ test('不同的请求无法共享缓存', async () => {
     method: 'get',
     url: '/users',
     headers: new AxiosHeaders(),
+    timestamp: Date.now(),
   };
 
   const config2: InternalAxiosRequestConfig = {
@@ -86,6 +90,7 @@ test('设置新的key以共享缓存', async () => {
     url: '/users',
     params: {},
     headers: new AxiosHeaders(),
+    timestamp: Date.now(),
   };
   const config2: InternalAxiosRequestConfig = {
     ...config1,
@@ -105,6 +110,7 @@ test('单词请求中强制开启缓存', async () => {
     url: '/users',
     cache: {},
     headers: new AxiosHeaders(),
+    timestamp: Date.now(),
   };
 
   const a = await cache.hit(config, resolveResponse);
@@ -120,6 +126,7 @@ test('config不会被共享', async () => {
     url: '/users',
     params: {},
     headers: new AxiosHeaders(),
+    timestamp: Date.now(),
   };
   const config2: InternalAxiosRequestConfig = {
     ...config1,
@@ -145,6 +152,7 @@ test('清除缓存', async () => {
     method: 'get',
     url: '/users',
     headers: new AxiosHeaders(),
+    timestamp: Date.now(),
   };
 
   const a = await cache.hit(config, resolveResponse);
@@ -162,11 +170,13 @@ test('清除指定缓存', async () => {
     method: 'get',
     url: '/users',
     headers: new AxiosHeaders(),
+    timestamp: Date.now(),
   };
   const config2: InternalAxiosRequestConfig = {
     method: 'get',
     url: '/users2',
     headers: new AxiosHeaders(),
+    timestamp: Date.now(),
   };
 
   const a = await cache.hit(config1, resolveResponse);

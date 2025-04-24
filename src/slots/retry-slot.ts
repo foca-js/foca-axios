@@ -96,7 +96,7 @@ export class RetrySlot {
     [500, 599],
   ];
   static defaultMaxTimes = 3;
-  static defaultGap = 300;
+  static defaultGap = 500;
 
   private readonly resolvingAuthorized: {
     refreshTime: number;

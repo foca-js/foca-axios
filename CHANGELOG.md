@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.2.1](https://github.com/foca-js/foca-axios/compare/v4.2.0...v4.2.1) (2025-04-24)
+
+
+### Bug Fixes
+
+* 更新默认重试间隔时间从300ms到500ms ([ce7ec85](https://github.com/foca-js/foca-axios/commit/ce7ec858b61979564d4a1d6812503e6c6a690c35))
+
 # [4.2.0](https://github.com/foca-js/foca-axios/compare/v4.1.2...v4.2.0) (2025-04-24)
 
 

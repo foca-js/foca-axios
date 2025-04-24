@@ -1,4 +1,11 @@
+# Changelog
 
+# [4.2.0](https://github.com/foca-js/foca-axios/compare/v4.1.2...v4.2.0) (2025-04-24)
+
+
+### Features
+
+* 重试机制支持Retry-After报文设置的时间 ([e039d2c](https://github.com/foca-js/foca-axios/commit/e039d2c5594b62eda3f78ed905f6d5c44f35d71c))
 
 ## [4.1.2](https://github.com/foca-js/foca-axios/compare/v4.1.1...v4.1.2) (2024-10-25)
 

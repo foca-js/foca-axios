@@ -244,3 +244,30 @@ describe('解决401授权问题', () => {
     expect(spy2).toBeCalledTimes(3);
   });
 });
+
+test('Retry-After报文', async () => {
+  const base = Math.round(Date.now() / 1000) * 1000;
+  const retry = new RetrySlot();
+
+  expect(retry['getRetryAfter']({ 'Retry-After': -1234 }, 300)).toBe(300);
+  expect(retry['getRetryAfter']({ 'Retry-After': 1234 }, 300)).toBe(1234000);
+  expect(retry['getRetryAfter']({ 'Retry-After': '-2000' }, 300)).toBe(300);
+  expect(retry['getRetryAfter']({ 'Retry-After': '2000' }, 300)).toBe(2000000);
+  expect(retry['getRetryAfter']({ 'Retry-After': 1 }, 3000)).toBe(3000);
+
+  {
+    const date = new Date(base);
+    date.setTime(date.getTime() + 1000);
+    const spy = vitest.spyOn(Date, 'now').mockImplementationOnce(() => base);
+    expect(retry['getRetryAfter']({ 'Retry-After': date.toISOString() }, 300)).toBe(1000);
+    spy.mockRestore();
+  }
+
+  {
+    const date = new Date(base);
+    date.setTime(date.getTime() - 1000);
+    const spy = vitest.spyOn(Date, 'now').mockImplementationOnce(() => base);
+    expect(retry['getRetryAfter']({ 'Retry-After': date.toISOString() }, 300)).toBe(300);
+    spy.mockRestore();
+  }
+});

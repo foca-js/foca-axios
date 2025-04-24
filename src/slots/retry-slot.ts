@@ -19,11 +19,11 @@ export type RetryOptions = {
    */
   maxTimes?: number;
   /**
-   * 每次重试间隔，默认：`300`ms
+   * 每次重试间隔。如果碰到报文`Retry-After`，则需到达报文指定的时间后才能重试。默认：`500`ms
    * @see setTimeout()
-   * @see RetrySlot.defaultDelay
+   * @see RetrySlot.defaultGap
    */
-  delay?: number;
+  gap?: number;
   /**
    * 允许重试的请求方法，默认：`['get', 'head', 'put', 'patch', 'delete']`
    * @see RetrySlot.defaultAllowedMethods
@@ -96,7 +96,7 @@ export class RetrySlot {
     [500, 599],
   ];
   static defaultMaxTimes = 3;
-  static defaultDelay = 300;
+  static defaultGap = 300;
 
   private readonly resolvingAuthorized: {
     refreshTime: number;
@@ -115,7 +115,7 @@ export class RetrySlot {
   ): Promise<boolean> {
     const options = mergeSlotOptions(this.options, config.retry);
     const {
-      delay = RetrySlot.defaultDelay,
+      gap = RetrySlot.defaultGap,
       maxTimes = RetrySlot.defaultMaxTimes,
       allowedMethods = RetrySlot.defaultAllowedMethods,
       allowedHttpStatus = RetrySlot.defaultAllowedHttpStatus,
@@ -168,9 +168,24 @@ export class RetrySlot {
 
     if (!enable) return false;
 
+    const durationMS = err.response ? this.getRetryAfter(err.response.headers, gap) : gap;
+
     return new Promise((resolve) => {
-      setTimeout(resolve, delay, true);
+      setTimeout(resolve, durationMS, true);
     });
+  }
+
+  protected getRetryAfter(headers: Record<string, any>, min: number) {
+    const retryAfter = headers['Retry-After'] || headers['retry-after'];
+    if (!retryAfter) return 0;
+    if (Number.isFinite(Number(retryAfter))) {
+      return Math.max(min, Number(retryAfter) * 1000);
+    }
+    const timestamp = new Date(retryAfter).getTime();
+    if (Number.isInteger(timestamp)) {
+      return Math.max(min, timestamp - Date.now());
+    }
+    return 0;
   }
 
   protected isAllowedStatus(

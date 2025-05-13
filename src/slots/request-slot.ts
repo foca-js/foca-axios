@@ -27,7 +27,7 @@ export class RequestSlot {
   ): Promise<any> {
     // FIXME: what if config includes custom adapter?
     const adapter = this.defaultAdapter;
-    const loop = (currentTimes: number): Promise<any> => {
+    const loop = (currentAttempt: number): Promise<any> => {
       return adapter(config)
         .then(onResolve, onReject)
         .then((response: AxiosResponse) => {
@@ -54,9 +54,9 @@ export class RequestSlot {
           return response;
         })
         .catch((err: AxiosError) => {
-          return shouldRetry(err, config, currentTimes + 1).then(
+          return shouldRetry(err, config, currentAttempt + 1).then(
             (enable) => {
-              return enable ? loop(currentTimes + 1) : Promise.reject(err);
+              return enable ? loop(currentAttempt + 1) : Promise.reject(err);
             },
             () => Promise.reject(err),
           );

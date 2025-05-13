@@ -17,6 +17,10 @@ declare module 'axios' {
     timestamp: number;
   }
 
+  export interface AxiosStatic {
+    _: AxiosStatic['create'];
+  }
+
   export interface AxiosRequestConfig<D = any> {
     /**
      * 相同请求共享。
@@ -136,5 +140,13 @@ export const enhance = <T extends AxiosInstance>(
 
 export const axios = enhance(originAxios, originAxios.defaults);
 
-const axiosCreate = axios.create;
-axios.create = (config) => enhance(axiosCreate(config));
+axios._ = axios.create;
+axios.create = (config = {}) => {
+  const { retry, throttle, cache, getHttpStatus, ...rest } = config;
+  return enhance(axios._(rest), {
+    retry,
+    throttle,
+    cache,
+    getHttpStatus,
+  });
+};

@@ -23,13 +23,12 @@ export const overrideRequest = (instance: AxiosInstance) => {
     }
   });
 
-  instance.request = function overrideRequest(config?: AxiosRequestConfig<any>) {
+  instance.request = function overrideRequest(cfg?: AxiosRequestConfig<any>) {
     let shouldUnwrap: boolean = true;
-    const promise = Axios.prototype.request
-      .call(instance, config || {})
-      .then((response) => {
-        return shouldUnwrap ? (response as AxiosResponse).data : response;
-      }) as FocaAxiosPromise;
+    const config = cfg || {};
+    const promise = Axios.prototype.request.call(instance, config).then((response) => {
+      return shouldUnwrap ? (response as AxiosResponse).data : response;
+    }) as FocaAxiosPromise;
 
     promise.toRaw = function toRawResponse() {
       shouldUnwrap = false;

@@ -21,6 +21,72 @@ test('允许重试', async () => {
   await expect(retry.validate(error, config, 1)).resolves.toBeTruthy();
 });
 
+test('禁止重试', async () => {
+  const retry = new RetrySlot({ enable: false });
+  const config: InternalAxiosRequestConfig = {
+    url: '/users',
+    method: 'get',
+    headers: new AxiosHeaders(),
+    timestamp: Date.now(),
+  };
+  const error = new AxiosError('', void 0, config, null, undefined);
+
+  await expect(retry.validate(error, config, 1)).resolves.toBeFalsy();
+});
+
+test('当个请求禁止重试', async () => {
+  const retry = new RetrySlot();
+  const config: InternalAxiosRequestConfig = {
+    url: '/users',
+    method: 'get',
+    headers: new AxiosHeaders(),
+    timestamp: Date.now(),
+    retry: false,
+  };
+  const error = new AxiosError('', void 0, config, null, undefined);
+
+  await expect(retry.validate(error, config, 1)).resolves.toBeFalsy();
+});
+
+test('当前请求主动配置时，忽略method', async () => {
+  const retry = new RetrySlot();
+
+  {
+    const config: InternalAxiosRequestConfig = {
+      url: '/users',
+      method: 'post',
+      headers: new AxiosHeaders(),
+      timestamp: Date.now(),
+    };
+    const error = new AxiosError('', void 0, config, null, {
+      status: 500,
+      data: [],
+      statusText: 'Server Error',
+      headers: {},
+      config,
+    });
+    await expect(retry.validate(error, config, 1)).resolves.toBeFalsy();
+  }
+
+  {
+    const config: InternalAxiosRequestConfig = {
+      url: '/users',
+      method: 'post',
+      headers: new AxiosHeaders(),
+      timestamp: Date.now(),
+      retry: true,
+    };
+    const error = new AxiosError('', void 0, config, null, {
+      status: 500,
+      data: [],
+      statusText: 'Server Error',
+      headers: {},
+      config,
+    });
+    await expect(retry.validate(error, config, 1)).resolves.toBeTruthy();
+  }
+});
+
 test('validate权限最高', async () => {
   const retry = new RetrySlot({
     validate(config) {
@@ -48,7 +114,7 @@ test('validate权限最高', async () => {
 
 test('最大重试次数', async () => {
   const retry = new RetrySlot({
-    maxTimes: 2,
+    maxAttempt: 2,
   });
 
   const config: InternalAxiosRequestConfig = {
@@ -111,7 +177,7 @@ test('匹配http状态码', async () => {
 describe('解决401授权问题', () => {
   const config: InternalAxiosRequestConfig = {
     url: '/users',
-    method: 'post',
+    method: 'get',
     headers: new AxiosHeaders(),
     timestamp: Date.now(),
   };
@@ -132,7 +198,7 @@ describe('解决401授权问题', () => {
   test('返回true', async () => {
     const retry = new RetrySlot({
       allowedMethods: ['get'],
-      allowedHttpStatus: [400],
+      allowedHttpStatus: [500],
       async resolveUnauthorized() {
         return true;
       },
@@ -144,7 +210,7 @@ describe('解决401授权问题', () => {
   test('返回false', async () => {
     const retry = new RetrySlot({
       allowedMethods: ['get'],
-      allowedHttpStatus: [400],
+      allowedHttpStatus: [500],
       async resolveUnauthorized() {
         return false;
       },
@@ -156,7 +222,7 @@ describe('解决401授权问题', () => {
   test('报错', async () => {
     const retry = new RetrySlot({
       allowedMethods: ['get'],
-      allowedHttpStatus: [400],
+      allowedHttpStatus: [500],
       async resolveUnauthorized() {
         throw new Error('x');
       },
@@ -171,7 +237,7 @@ describe('解决401授权问题', () => {
 
     const retry = new RetrySlot({
       allowedMethods: ['get'],
-      allowedHttpStatus: [400],
+      allowedHttpStatus: [500],
       async resolveUnauthorized() {
         await sleep(2000);
         spy1();
@@ -194,13 +260,71 @@ describe('解决401授权问题', () => {
     expect(result).toMatchObject([true, true, true, true]);
   });
 
+  test('并发授权失败时，都返回失败', async () => {
+    const spy1 = vitest.fn();
+    const spy2 = vitest.fn();
+
+    const retry = new RetrySlot({
+      allowedMethods: ['get'],
+      allowedHttpStatus: [500],
+      async resolveUnauthorized() {
+        await sleep(2000);
+        spy1();
+        return false;
+      },
+      onAuthorized() {
+        spy2();
+      },
+    });
+
+    const result = await Promise.all([
+      retry.validate(error, config, 1),
+      retry.validate(error, config, 1),
+      retry.validate(error, config, 1),
+      retry.validate(error, config, 1),
+    ]);
+
+    expect(spy1).toBeCalledTimes(1);
+    expect(spy2).toBeCalledTimes(0);
+    expect(result).toMatchObject([false, false, false, false]);
+  });
+
+  test('并发授权报错时，都返回失败', async () => {
+    const spy1 = vitest.fn();
+    const spy2 = vitest.fn();
+
+    const retry = new RetrySlot({
+      allowedMethods: ['get'],
+      allowedHttpStatus: [500],
+      async resolveUnauthorized() {
+        await sleep(2000);
+        spy1();
+        throw new Error('XXX');
+      },
+      onAuthorized() {
+        spy2();
+      },
+    });
+
+    const result = await Promise.all([
+      retry.validate(error, config, 1),
+      retry.validate(error, config, 1),
+      retry.validate(error, config, 1),
+      retry.validate(error, config, 1),
+    ]);
+
+    expect(spy1).toBeCalledTimes(1);
+    expect(spy2).toBeCalledTimes(0);
+    expect(result).toMatchObject([false, false, false, false]);
+  });
+
   test('有请求在重新授权后才响应并返回401状态码，则应当共用授权数据', async () => {
     const spy1 = vitest.fn();
     const spy2 = vitest.fn();
 
     const retry = new RetrySlot({
       allowedMethods: ['get'],
-      allowedHttpStatus: [400],
+      allowedHttpStatus: [500],
       async resolveUnauthorized() {
         await sleep(2000);
         spy1();
@@ -245,29 +369,35 @@ describe('解决401授权问题', () => {
   });
 });
 
-test('Retry-After报文', async () => {
+describe('Retry-After报文', async () => {
   const base = Math.round(Date.now() / 1000) * 1000;
   const retry = new RetrySlot();
 
-  expect(retry['getRetryAfter']({ 'Retry-After': -1234 }, 300)).toBe(300);
-  expect(retry['getRetryAfter']({ 'Retry-After': 1234 }, 300)).toBe(1234000);
-  expect(retry['getRetryAfter']({ 'Retry-After': '-2000' }, 300)).toBe(300);
-  expect(retry['getRetryAfter']({ 'Retry-After': '2000' }, 300)).toBe(2000000);
-  expect(retry['getRetryAfter']({ 'Retry-After': 1 }, 3000)).toBe(3000);
+  test('秒', () => {
+    expect(retry['getRetryAfter']({ 'Retry-After': -1234 }, 300)).toBe(300);
+    expect(retry['getRetryAfter']({ 'Retry-After': 1234 }, 300)).toBe(1234000);
+    expect(retry['getRetryAfter']({ 'Retry-After': '-2000' }, 300)).toBe(300);
+    expect(retry['getRetryAfter']({ 'Retry-After': '2000' }, 300)).toBe(2000000);
+    expect(retry['getRetryAfter']({ 'Retry-After': 1 }, 3000)).toBe(3000);
+  });
 
-  {
+  test('时间', () => {
     const date = new Date(base);
     date.setTime(date.getTime() + 1000);
     const spy = vitest.spyOn(Date, 'now').mockImplementationOnce(() => base);
     expect(retry['getRetryAfter']({ 'Retry-After': date.toISOString() }, 300)).toBe(1000);
     spy.mockRestore();
-  }
+  });
 
-  {
+  test('过期时间', () => {
     const date = new Date(base);
     date.setTime(date.getTime() - 1000);
     const spy = vitest.spyOn(Date, 'now').mockImplementationOnce(() => base);
     expect(retry['getRetryAfter']({ 'Retry-After': date.toISOString() }, 300)).toBe(300);
     spy.mockRestore();
-  }
+  });
+
+  test('无效字符', () => {
+    expect(retry['getRetryAfter']({ 'Retry-After': 'abcd' }, 300)).toBe(0);
+  });
 });

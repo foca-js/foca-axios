@@ -15,23 +15,23 @@ export type RetryOptions = {
   enable?: boolean;
   /**
    * 最大重试次数，默认：`3`次
-   * @see RetrySlot.defaultMaxTimes
+   * @see RetrySlot.MAX_ATTEMPT
    */
-  maxTimes?: number;
+  maxAttempt?: number;
   /**
    * 每次重试间隔。如果碰到报文`Retry-After`，则需到达报文指定的时间后才能重试。默认：`500`ms
    * @see setTimeout()
-   * @see RetrySlot.defaultGap
+   * @see RetrySlot.GAP
    */
   gap?: number;
   /**
    * 允许重试的请求方法，默认：`['get', 'head', 'put', 'patch', 'delete']`
-   * @see RetrySlot.defaultAllowedMethods
+   * @see RetrySlot.ALLOWED_METHODS
    */
   allowedMethods?: `${Lowercase<Method>}`[];
   /**
    * 允许重试的http状态码区间，默认：`[[100, 199], 429, [500, 599]]`
-   * @see RetrySlot.defaultAllowedHttpStatus
+   * @see RetrySlot.ALLOWED_HTTP_STATUS
    */
   allowedHttpStatus?: (number | [number, number])[];
   /**
@@ -83,20 +83,20 @@ export type RetryOptions = {
 );
 
 export class RetrySlot {
-  static defaultAllowedMethods: NonNullable<RetryOptions['allowedMethods']> = [
+  static ALLOWED_METHODS: NonNullable<RetryOptions['allowedMethods']> = [
     'get',
     'head',
     'put',
     'patch',
     'delete',
   ];
-  static defaultAllowedHttpStatus: NonNullable<RetryOptions['allowedHttpStatus']> = [
+  static ALLOWED_HTTP_STATUS: NonNullable<RetryOptions['allowedHttpStatus']> = [
     [100, 199],
     429,
     [500, 599],
   ];
-  static defaultMaxTimes = 3;
-  static defaultGap = 500;
+  static MAX_ATTEMPT = 3;
+  static GAP = 500;
 
   private readonly resolvingAuthorized: {
     refreshTime: number;
@@ -111,62 +111,70 @@ export class RetrySlot {
   async validate(
     err: AxiosError | Cancel,
     config: InternalAxiosRequestConfig,
-    currentTimes: number,
+    currentAttempt: number,
   ): Promise<boolean> {
-    const options = mergeSlotOptions(this.options, config.retry);
     const {
-      gap = RetrySlot.defaultGap,
-      maxTimes = RetrySlot.defaultMaxTimes,
-      allowedMethods = RetrySlot.defaultAllowedMethods,
-      allowedHttpStatus = RetrySlot.defaultAllowedHttpStatus,
+      enable,
+      gap = RetrySlot.GAP,
+      maxAttempt = RetrySlot.MAX_ATTEMPT,
+      allowedMethods = RetrySlot.ALLOWED_METHODS,
+      allowedHttpStatus = RetrySlot.ALLOWED_HTTP_STATUS,
       resolveUnauthorized,
       onAuthorized,
       validate,
-    } = options;
+    } = mergeSlotOptions(this.options, config.retry);
 
-    const basicEnable =
-      options.enable !== false && currentTimes <= maxTimes && !axios.isCancel(err);
-    if (!basicEnable) return false;
-
-    let enable = false;
+    if (enable === false) return false;
+    if (currentAttempt > maxAttempt) return false;
+    if (axios.isCancel(err)) return false;
+    if (
+      // 当前请求主动设置了重试配置，则必须忽略method判断
+      config.retry === undefined &&
+      !allowedMethods.includes(config.method!.toLowerCase() as `${Lowercase<Method>}`)
+    ) {
+      return false;
+    }
+    const waitingAuthorize =
+      err.response &&
+      err.response.status === 401 &&
+      typeof resolveUnauthorized === 'function' &&
+      typeof onAuthorized === 'function';
+    if (
+      err.response &&
+      !waitingAuthorize &&
+      !this.isAllowedStatus(err.response, allowedHttpStatus)
+    ) {
+      return false;
+    }
+    if (validate && !validate(config)) return false;
 
     // 刷新令牌之类的操作只能执行一次，如果每个接口都去刷新，则会导致令牌覆盖问题
-    if (err.response && err.response.status === 401 && resolveUnauthorized) {
+    if (waitingAuthorize) {
       if (this.resolvingAuthorized.handler) {
         try {
-          enable = await this.resolvingAuthorized.handler;
+          const resolved = await this.resolvingAuthorized.handler;
+          if (!resolved) return false;
           await onAuthorized(config);
         } catch {
-          enable = false;
+          return false;
         }
       } else if (this.resolvingAuthorized.refreshTime > config.timestamp) {
         await onAuthorized(config);
       } else {
         try {
           this.resolvingAuthorized.handler = resolveUnauthorized(err);
-          enable = await this.resolvingAuthorized.handler;
+          const resolved = await this.resolvingAuthorized.handler;
+          if (!resolved) return false;
           this.resolvingAuthorized.refreshTime = Date.now();
           await onAuthorized(config);
         } catch (e) {
           console.error(e);
-          enable = false;
+          return false;
         } finally {
           this.resolvingAuthorized.handler = null;
         }
       }
     }
-
-    if (!enable) {
-      enable =
-        allowedMethods.includes(config.method!.toLowerCase() as `${Lowercase<Method>}`) &&
-        (!err.response || this.isAllowedStatus(err.response, allowedHttpStatus));
-    }
-
-    if (validate) {
-      enable = validate(config);
-    }
-
-    if (!enable) return false;
 
     const durationMS = err.response ? this.getRetryAfter(err.response.headers, gap) : gap;
 

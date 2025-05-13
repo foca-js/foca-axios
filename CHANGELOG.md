@@ -1,5 +1,12 @@
 # Changelog
 
+# [4.3.0](https://github.com/foca-js/foca-axios/compare/v4.2.1...v4.3.0) (2025-05-13)
+
+
+### Features
+
+* 单次请求开启重试时，忽略method判断 ([976d283](https://github.com/foca-js/foca-axios/commit/976d28324eef27452817ac13c744042ca32f87e1))
+
 ## [4.2.1](https://github.com/foca-js/foca-axios/compare/v4.2.0...v4.2.1) (2025-04-24)
 
 
